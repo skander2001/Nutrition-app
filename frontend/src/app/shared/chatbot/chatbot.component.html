@@ -1,0 +1,52 @@
+<button class="nc-chat-fab" [class.open]="open" (click)="toggle()" aria-label="Ouvrir l'assistant" type="button">
+  <span class="nc-chat-icon-open" *ngIf="!open">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+    </svg>
+    <span *ngIf="showPulse" class="nc-pulse">1</span>
+  </span>
+  <span *ngIf="open">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6l-12 12"/></svg>
+  </span>
+</button>
+
+<div class="nc-chat-panel" [class.open]="open" role="dialog" aria-label="Assistant NutriCare">
+  <div class="nc-chat-hd">
+    <div class="nc-chat-hd-photo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="9"/>
+      </svg>
+    </div>
+    <div>
+      <h4>Assistant NutriCare</h4>
+      <p>En ligne · Réponse en ~ 10 s</p>
+    </div>
+    <button class="nc-chat-hd-close" (click)="toggle()" aria-label="Fermer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6l-12 12"/></svg>
+    </button>
+  </div>
+
+  <div class="nc-chat-body" #body>
+    <div *ngFor="let m of messages" class="nc-msg" [class.bot]="m.role === 'bot'" [class.user]="m.role === 'user'">{{ m.text }}</div>
+    <div *ngIf="typing" class="nc-msg typing"><span></span><span></span><span></span></div>
+  </div>
+
+  <div class="nc-chip-row" *ngIf="chips.length">
+    <button *ngFor="let c of chips" type="button" class="nc-chip" (click)="pickChip(c)">{{ c }}</button>
+  </div>
+
+  <div class="nc-chat-ft">
+    <textarea
+      #input
+      class="nc-chat-input"
+      rows="1"
+      placeholder="Posez votre question…"
+      [(ngModel)]="draft"
+      (keydown)="onKey($event)"
+    ></textarea>
+    <button class="nc-chat-send" [disabled]="typing || !draft.trim()" (click)="submit()" aria-label="Envoyer" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+    </button>
+  </div>
+  <div class="nc-chat-ft-note">Cet assistant ne remplace pas une consultation. Pour tout avis médical, contactez Dr. Benali.</div>
+</div>

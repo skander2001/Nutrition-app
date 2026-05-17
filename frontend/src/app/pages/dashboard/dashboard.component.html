@@ -1,0 +1,187 @@
+<div class="shell">
+  <app-sidebar active="records"></app-sidebar>
+
+  <main class="shell-main">
+    <app-topbar></app-topbar>
+
+    <div class="page">
+      <div class="crumbs">
+        <span class="muted">Mon dossier</span>
+        <span class="sep">›</span>
+        <span>Bechir Kanzari</span>
+      </div>
+
+      <div class="body-grid">
+        <!-- LEFT: Patient + appointments -->
+        <div class="card">
+          <div class="pp">
+            <div class="pp-photo">BK</div>
+            <div class="pp-info">
+              <div class="pp-name">
+                Bechir Kanzari
+                <span class="pp-tag"><span class="dot"></span>Suivi pondéral</span>
+              </div>
+              <div class="pp-sub">Programme « Équilibre 6 mois » · Phase 2 / 4 <span class="mono">PAT-04812</span></div>
+            </div>
+            <div class="pp-actions">
+              <button class="pill-btn" title="Téléconsultation">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+              </button>
+              <button class="pill-btn" title="Message">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              </button>
+              <button class="pill-btn" title="Appeler">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h3l2 5-2 1a12 12 0 0 0 6 6l1-2 5 2v3a2 2 0 0 1-2 2A17 17 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="info-grid">
+            <div class="info-cell">
+              <div class="info-lbl">Date de naissance</div>
+              <div class="info-val">14 mars 1989 <small>· 37 ans</small></div>
+            </div>
+            <div class="info-cell">
+              <div class="info-lbl">Téléphone</div>
+              <div class="info-val">+216 22 451 308</div>
+            </div>
+            <div class="info-cell">
+              <div class="info-lbl">Groupe sanguin</div>
+              <div class="info-val">A+ <small>· Rh positif</small></div>
+            </div>
+            <div class="info-cell">
+              <div class="info-lbl">Mutuelle</div>
+              <div class="info-val">CNAM #TN-0042 851</div>
+            </div>
+            <div class="info-cell">
+              <div class="info-lbl">Taille</div>
+              <div class="info-val">1,78 m</div>
+            </div>
+            <div class="info-cell">
+              <div class="info-lbl">Poids actuel</div>
+              <div class="info-val">82,4 kg <small>· IMC 26,0</small></div>
+            </div>
+            <div class="info-cell">
+              <div class="info-lbl">Allergies</div>
+              <div class="info-val">Fruits à coque, lactose</div>
+            </div>
+            <div class="info-cell">
+              <div class="info-lbl">Suivi depuis</div>
+              <div class="info-val">12 février 2025</div>
+            </div>
+          </div>
+
+          <div class="tabs-row">
+            <div class="tabs">
+              <button [class.active]="activeTab === 'next'" (click)="activeTab = 'next'">À venir <span class="count">3</span></button>
+              <button [class.active]="activeTab === 'past'" (click)="activeTab = 'past'">Passés <span class="count">12</span></button>
+              <button [class.active]="activeTab === 'canceled'" (click)="activeTab = 'canceled'">Annulés <span class="count">1</span></button>
+            </div>
+            <button class="add-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+              Nouveau RDV
+            </button>
+          </div>
+
+          <div class="appt-list">
+            <div *ngFor="let a of appointments" class="appt">
+              <div class="appt-num" [class.next]="a.next">{{ a.num }}</div>
+              <div>
+                <span class="appt-col-lbl">Date</span>
+                <div class="appt-col-val">{{ a.date }}</div>
+                <div class="appt-col-sub">{{ a.dateMeta }}</div>
+              </div>
+              <div class="hide-md">
+                <span class="appt-col-lbl">Motif</span>
+                <div class="appt-col-val">{{ a.reason }}</div>
+                <div class="appt-col-sub">{{ a.reasonMeta }}</div>
+              </div>
+              <div class="appt-prac">
+                <div class="appt-prac-photo">{{ a.practitionerInitials }}</div>
+                <div>
+                  <span class="appt-col-lbl">Praticien</span>
+                  <div class="appt-col-val">{{ a.practitioner }}</div>
+                </div>
+              </div>
+              <div><span class="badge" [class.ok]="a.status === 'ok'" [class.info]="a.status === 'info'" [class.warn]="a.status === 'warn'"><span class="dot"></span>{{ a.statusLabel }}</span></div>
+              <button class="more" aria-label="Plus"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="18" cy="12" r="1.5"/></svg></button>
+            </div>
+          </div>
+
+          <button class="see-all">Voir tous les rendez-vous</button>
+        </div>
+
+        <!-- RIGHT -->
+        <div class="aside">
+          <div class="card">
+            <div class="card-hd">
+              <h3>Documents</h3>
+              <button class="add-btn ghost">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                Ajouter
+              </button>
+            </div>
+            <div class="doc-list">
+              <div *ngFor="let d of documents" class="doc">
+                <div class="doc-icon" [class.green]="d.color === 'green'" [class.orange]="d.color === 'orange'" [class.cyan]="d.color === 'cyan'" [class.pink]="d.color === 'pink'">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+                </div>
+                <div>
+                  <div class="doc-name">{{ d.name }}</div>
+                  <div class="doc-meta">{{ d.meta }}</div>
+                </div>
+                <button class="more" aria-label="Voir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                <button class="more" aria-label="Plus"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="18" cy="12" r="1.5"/></svg></button>
+              </div>
+            </div>
+            <button class="see-all">Voir tous les documents ({{ documents.length + 9 }})</button>
+          </div>
+
+          <div class="card progress-card">
+            <h4>Objectifs en cours</h4>
+            <div class="progress-row"><span class="lbl">Poids cible</span><span class="val">82,4 / 75 kg</span></div>
+            <div class="bar"><div style="width:62%"></div></div>
+            <div class="progress-row"><span class="lbl">Hydratation /jour</span><span class="val">1,8 / 2,5 L</span></div>
+            <div class="bar ok"><div style="width:72%"></div></div>
+            <div class="progress-row"><span class="lbl">Activité physique</span><span class="val">3 / 5 séances</span></div>
+            <div class="bar warn"><div style="width:60%"></div></div>
+            <div class="progress-row" style="margin-top:6px;"><span class="lbl">Sommeil moyen</span><span class="val">7 h 12</span></div>
+            <svg class="mini-chart" viewBox="0 0 240 56" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="g1" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0" stop-color="#4f46e5" stop-opacity=".25"/>
+                  <stop offset="1" stop-color="#4f46e5" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <path d="M0 38 L24 30 L48 34 L72 22 L96 28 L120 18 L144 24 L168 12 L192 18 L216 8 L240 14" fill="none" stroke="#4f46e5" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+              <path d="M0 38 L24 30 L48 34 L72 22 L96 28 L120 18 L144 24 L168 12 L192 18 L216 8 L240 14 L240 56 L0 56 Z" fill="url(#g1)"/>
+            </svg>
+          </div>
+
+          <div class="card">
+            <div class="card-hd">
+              <h3>Suivi nutritionnel</h3>
+              <button class="add-btn ghost">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                Nouvelle mesure
+              </button>
+            </div>
+            <div class="rec-list">
+              <div *ngFor="let r of records" class="rec">
+                <div class="rec-date"><span class="d">{{ r.d }}</span><span class="m">{{ r.m }}</span></div>
+                <div class="rec-main">
+                  <div class="rec-cell"><div class="lbl">Poids</div><div class="val">{{ r.weight }}</div><div class="delta" [class.down]="r.weightDir === 'down'" [class.up]="r.weightDir === 'up'">{{ r.weightDelta }}</div></div>
+                  <div class="rec-cell"><div class="lbl">IMC</div><div class="val">{{ r.bmi }}</div><div class="delta" [class.down]="r.bmiDir === 'down'" [class.up]="r.bmiDir === 'up'">{{ r.bmiDelta }}</div></div>
+                  <div class="rec-cell"><div class="lbl">Masse gr.</div><div class="val">{{ r.fat }}</div><div class="delta" [class.down]="r.fatDir === 'down'" [class.up]="r.fatDir === 'up'">{{ r.fatDelta }}</div></div>
+                </div>
+              </div>
+            </div>
+            <button class="see-all">Voir l'historique complet</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<app-chatbot></app-chatbot>

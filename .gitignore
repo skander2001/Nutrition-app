@@ -1,6 +1,7 @@
 # Angular
 frontend/node_modules
 frontend/dist
+frontend/.angular
 
 # Flask
 backend/venv
