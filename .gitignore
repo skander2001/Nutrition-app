@@ -1,0 +1,22 @@
+# Angular
+frontend/node_modules
+frontend/dist
+
+# Flask
+backend/venv
+backend/__pycache__
+backend/*.pyc
+
+# Environment
+.env
+
+# MacOS
+.DS_Store
+
+# VSCode
+.vscode
+
+# Logs
+*.log
+
+.claude
