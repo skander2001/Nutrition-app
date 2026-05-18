@@ -7,6 +7,7 @@ from models.user import User
 from models.patient import Patient
 from models.nutritionniste import Nutritionniste
 from controllers.auth_controller import auth_bp, init_oauth
+from controllers.chatbot_controller import chatbot_bp
 from services.auth_service import bcrypt
 
 def create_app():
@@ -25,6 +26,7 @@ def create_app():
     init_oauth(app)
 
     app.register_blueprint(auth_bp)
+    app.register_blueprint(chatbot_bp)
 
     return app
 
