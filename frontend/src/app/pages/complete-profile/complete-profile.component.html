@@ -1,0 +1,112 @@
+<div class="auth-shell">
+  <aside class="auth-aside">
+    <a routerLink="/" class="auth-brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="9"/></svg>
+      </div>
+      <div class="brand-name">Nutri<span>Care</span></div>
+    </a>
+
+    <div class="auth-aside-inner">
+      <div class="auth-eyebrow"><span class="dot"></span>Profil médical</div>
+      <h2>Aidez-nous à personnaliser votre suivi.</h2>
+      <p>Ces informations permettent à Dr. Benali de préparer votre première consultation et d'adapter votre plan alimentaire dès le départ.</p>
+
+      <ul class="auth-perks">
+        <li>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 13l4 4L19 7"/></svg>
+          Plan alimentaire personnalisé
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 13l4 4L19 7"/></svg>
+          Objectifs adaptés à votre santé
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 13l4 4L19 7"/></svg>
+          Données 100% confidentielles (HDS)
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 13l4 4L19 7"/></svg>
+          Vous pouvez les compléter plus tard
+        </li>
+      </ul>
+    </div>
+
+    <div class="auth-aside-foot">© 2026 Cabinet Dr. Sarah Benali</div>
+  </aside>
+
+  <main class="auth-main">
+    <div class="auth-top">
+      <span class="muted">Étape 2 sur 2</span>
+      <button class="btn ghost" (click)="skip()">Passer cette étape →</button>
+    </div>
+
+    <div class="auth-form-wrap">
+      <div class="auth-form">
+        <div class="auth-eyebrow indigo"><span class="dot"></span>Informations médicales</div>
+        <h1>Complétez votre profil<span *ngIf="userName">, {{ userName }}</span>.</h1>
+        <p class="auth-sub">Ces informations ne sont partagées qu'avec votre praticien.</p>
+
+        <form (ngSubmit)="submit()" novalidate>
+
+          <div class="field auth-field">
+            <label class="lbl">Sexe <span class="req">*</span></label>
+            <div class="radio-group">
+              <label class="radio-opt" [class.selected]="sexe === 'M'">
+                <input type="radio" name="sexe" value="M" [(ngModel)]="sexe" />
+                <span>Homme</span>
+              </label>
+              <label class="radio-opt" [class.selected]="sexe === 'F'">
+                <input type="radio" name="sexe" value="F" [(ngModel)]="sexe" />
+                <span>Femme</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="field auth-field">
+            <label class="lbl">Adresse <span class="req">*</span></label>
+            <input class="input" name="adresse" [(ngModel)]="adresse" placeholder="14 rue des Oliviers, Tunis" />
+          </div>
+
+          <div class="field auth-field">
+            <label class="lbl">Objectif nutritionnel <span class="req">*</span></label>
+            <div class="objectif-grid">
+              <button
+                *ngFor="let obj of objectifs"
+                type="button"
+                class="obj-chip"
+                [class.selected]="objectif === obj.value"
+                (click)="objectif = obj.value"
+              >
+                <span class="obj-icon">{{ obj.icon }}</span>
+                <span>{{ obj.label }}</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="field auth-field">
+            <label class="lbl">Allergies alimentaires <span class="opt">(optionnel)</span></label>
+            <input class="input" name="allergie" [(ngModel)]="allergie" placeholder="Gluten, lactose, fruits à coque…" />
+          </div>
+
+          <div class="field auth-field">
+            <label class="lbl">Maladies chroniques <span class="opt">(optionnel)</span></label>
+            <input class="input" name="maladie_chronique" [(ngModel)]="maladie_chronique" placeholder="Diabète, hypertension, thyroïde…" />
+          </div>
+
+          <div *ngIf="error" class="auth-error">{{ error }}</div>
+
+          <button class="btn lg auth-submit" type="submit" [disabled]="loading">
+            <span *ngIf="!loading">Enregistrer et accéder au tableau de bord</span>
+            <span *ngIf="loading">Enregistrement…</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </button>
+
+          <p class="auth-tos">
+            Vous pouvez modifier ces informations à tout moment dans votre profil.
+          </p>
+        </form>
+      </div>
+    </div>
+  </main>
+</div>

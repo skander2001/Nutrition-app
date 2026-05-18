@@ -42,14 +42,7 @@ export class AppointmentComponent implements OnInit, OnDestroy {
     { id: 'autre', label: 'Autre motif', icon: '✦' },
   ];
 
-  consultTypes = [
-    { id: 'premiere', label: 'Première consultation', desc: 'Bilan complet + plan alimentaire personnalisé', price: '70 DT', duration: '60 min', icon: 'star' },
-    { id: 'suivi', label: 'Consultation de suivi', desc: 'Ajustements du plan et suivi des objectifs', price: '45 DT', duration: '30 min', icon: 'refresh' },
-    { id: 'tele', label: 'Téléconsultation', desc: 'Consultation en vidéo, depuis chez vous', price: '40 DT', duration: '30 min', icon: 'video' },
-  ];
-
   selectedReason = '';
-  selectedType = '';
   selectedDate: CalendarDay | null = null;
   selectedSlot = '';
   notes = '';
@@ -112,18 +105,6 @@ export class AppointmentComponent implements OnInit, OnDestroy {
     return this.reasons.find(r => r.id === this.selectedReason)?.label ?? '';
   }
 
-  get selectedTypeLabel() {
-    return this.consultTypes.find(t => t.id === this.selectedType)?.label ?? '';
-  }
-
-  get selectedTypePrice() {
-    return this.consultTypes.find(t => t.id === this.selectedType)?.price ?? '';
-  }
-
-  get selectedTypeDuration() {
-    return this.consultTypes.find(t => t.id === this.selectedType)?.duration ?? '';
-  }
-
   get selectedDateLabel() {
     if (!this.selectedDate) return '';
     const months = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
@@ -131,7 +112,7 @@ export class AppointmentComponent implements OnInit, OnDestroy {
   }
 
   get canGoStep2() {
-    return this.selectedReason !== '' && this.selectedType !== '';
+    return this.selectedReason !== '';
   }
 
   get canConfirm() {

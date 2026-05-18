@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -10,14 +11,26 @@ import { Router, RouterLink } from '@angular/router';
   templateUrl: './login.component.html',
   styleUrl: './auth.component.css'
 })
-export class LoginComponent {
-  email = '';
+export class LoginComponent implements OnInit {
+  email    = '';
   password = '';
   remember = true;
-  loading = false;
-  error = '';
+  loading  = false;
+  error    = '';
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private route: ActivatedRoute,
+    private auth: AuthService
+  ) {}
+
+  ngOnInit() {
+    this.route.queryParams.subscribe(params => {
+      if (params['error']) {
+        this.error = 'La connexion avec Google a échoué. Veuillez réessayer.';
+      }
+    });
+  }
 
   submit() {
     this.error = '';
@@ -26,9 +39,21 @@ export class LoginComponent {
       return;
     }
     this.loading = true;
-    setTimeout(() => {
-      this.loading = false;
-      this.router.navigate(['/dashboard']);
-    }, 700);
+    this.auth.login({ email: this.email.trim().toLowerCase(), password: this.password })
+      .subscribe({
+        next: (user) => {
+          this.loading = false;
+          const dest = user.profile_complete === false ? '/complete-profile' : '/dashboard';
+          this.router.navigate([dest]);
+        },
+        error: (err) => {
+          this.loading = false;
+          this.error = err.error?.error ?? 'Email ou mot de passe incorrect.';
+        }
+      });
+  }
+
+  loginWithGoogle() {
+    window.location.href = 'http://localhost:5000/api/auth/google';
   }
 }

@@ -15,20 +15,10 @@
       <div class="profile-hero card">
         <div class="hero-cover"></div>
         <div class="hero-body">
-          <div class="hero-avatar">BK</div>
+          <div class="hero-avatar">{{ initials }}</div>
           <div class="hero-info">
             <h2>{{ firstName }} {{ lastName }}</h2>
-            <p class="hero-sub">Patient · Suivi pondéral <span class="mono">PAT-04812</span></p>
-          </div>
-          <div class="hero-actions">
-            <button class="btn ghost">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-              Message
-            </button>
-            <button class="btn ghost">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-              Localiser
-            </button>
+            <p class="hero-sub">Patient <span class="mono">{{ email }}</span></p>
           </div>
         </div>
       </div>
@@ -42,17 +32,10 @@
             [class.active]="activeSection === s.id"
             (click)="activeSection = s.id"
           >
-            <!-- User icon -->
             <svg *ngIf="s.icon === 'user'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            <!-- Map pin -->
             <svg *ngIf="s.icon === 'map-pin'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            <!-- Heart -->
             <svg *ngIf="s.icon === 'heart'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
-            <!-- Shield -->
-            <svg *ngIf="s.icon === 'shield'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            <!-- Bell -->
             <svg *ngIf="s.icon === 'bell'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
-            <!-- Lock -->
             <svg *ngIf="s.icon === 'lock'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
             <span>{{ s.label }}</span>
           </button>
@@ -92,13 +75,9 @@
                   <select class="select" [(ngModel)]="gender">
                     <option value="M">Homme</option>
                     <option value="F">Femme</option>
-                    <option value="autre">Non précisé</option>
+                    <option value="">Non précisé</option>
                   </select>
                 </div>
-              </div>
-              <div class="field">
-                <label class="lbl">Nationalité</label>
-                <input class="input" [(ngModel)]="nationality" />
               </div>
             </div>
             <div class="section-foot">
@@ -151,68 +130,24 @@
               <div class="row-2">
                 <div class="field">
                   <label class="lbl">Taille (m)</label>
-                  <input class="input" [(ngModel)]="height" />
+                  <input class="input" [(ngModel)]="height" placeholder="1.75" />
                 </div>
                 <div class="field">
                   <label class="lbl">Poids actuel (kg)</label>
-                  <input class="input" [(ngModel)]="weight" />
+                  <input class="input" [(ngModel)]="weight" placeholder="70" />
                 </div>
-              </div>
-              <div class="field">
-                <label class="lbl">Groupe sanguin</label>
-                <select class="select" [(ngModel)]="bloodGroup">
-                  <option>A+</option><option>A-</option>
-                  <option>B+</option><option>B-</option>
-                  <option>AB+</option><option>AB-</option>
-                  <option>O+</option><option>O-</option>
-                </select>
               </div>
               <div class="field">
                 <label class="lbl">Allergies alimentaires</label>
-                <input class="input" [(ngModel)]="allergies" placeholder="Fruits à coque, lactose…" />
+                <input class="input" [(ngModel)]="allergies" placeholder="Gluten, lactose, fruits à coque…" />
               </div>
               <div class="field">
                 <label class="lbl">Traitements en cours</label>
-                <textarea class="textarea" [(ngModel)]="treatments" rows="2"></textarea>
+                <textarea class="textarea" [(ngModel)]="treatments" rows="2" placeholder="Aucun traitement en cours"></textarea>
               </div>
               <div class="field">
                 <label class="lbl">Antécédents médicaux</label>
-                <textarea class="textarea" [(ngModel)]="antecedents" rows="3"></textarea>
-              </div>
-            </div>
-            <div class="section-foot">
-              <button class="btn" (click)="save()">Enregistrer les modifications</button>
-            </div>
-          </div>
-
-          <!-- MUTUELLE -->
-          <div class="card profile-section" *ngIf="activeSection === 'mutuelle'">
-            <div class="section-hd">
-              <h3>Mutuelle & assurance</h3>
-              <p class="section-sub">Vos informations de couverture maladie</p>
-            </div>
-            <div class="section-body">
-              <div class="row-2">
-                <div class="field">
-                  <label class="lbl">Organisme</label>
-                  <input class="input" [(ngModel)]="mutuelleName" />
-                </div>
-                <div class="field">
-                  <label class="lbl">Numéro d'adhérent</label>
-                  <input class="input" [(ngModel)]="mutuelleNum" />
-                </div>
-              </div>
-              <div class="field">
-                <label class="lbl">Formule souscrite</label>
-                <input class="input" [(ngModel)]="mutuellePlan" />
-              </div>
-              <div class="field">
-                <label class="lbl">Date d'expiration</label>
-                <input class="input" type="date" [(ngModel)]="mutuelleExpiry" />
-              </div>
-              <div class="info-box">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                <p>Vos consultations nutritionnelles peuvent être remboursées par certaines mutuelles. Renseignez-vous auprès de votre organisme.</p>
+                <textarea class="textarea" [(ngModel)]="antecedents" rows="3" placeholder="Aucun antécédent notable"></textarea>
               </div>
             </div>
             <div class="section-foot">
@@ -250,7 +185,6 @@
                   </button>
                 </div>
               </div>
-
               <div class="toggle-group">
                 <div class="toggle-lbl-group">
                   <span class="toggle-group-title">Communications</span>
@@ -270,15 +204,6 @@
                     <div class="toggle-sub">Dès qu'un document est ajouté à votre dossier</div>
                   </div>
                   <button class="toggle-btn" [class.on]="notifResultats" (click)="notifResultats = !notifResultats">
-                    <span class="toggle-thumb"></span>
-                  </button>
-                </div>
-                <div class="toggle-row">
-                  <div>
-                    <div class="toggle-title">Actualités & conseils</div>
-                    <div class="toggle-sub">Newsletter mensuelle du cabinet</div>
-                  </div>
-                  <button class="toggle-btn" [class.on]="notifActualites" (click)="notifActualites = !notifActualites">
                     <span class="toggle-thumb"></span>
                   </button>
                 </div>

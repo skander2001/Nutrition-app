@@ -4,8 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { SidebarComponent } from '../../shared/sidebar/sidebar.component';
 import { TopbarComponent } from '../../shared/topbar/topbar.component';
 import { ChatbotComponent } from '../../shared/chatbot/chatbot.component';
+import { AuthService } from '../../services/auth.service';
 
-type ProfileSection = 'identite' | 'coordonnees' | 'sante' | 'mutuelle' | 'notifications' | 'securite';
+type ProfileSection = 'identite' | 'coordonnees' | 'sante' | 'notifications' | 'securite';
 
 @Component({
   selector: 'app-profile',
@@ -21,54 +22,47 @@ export class ProfileComponent implements OnInit, OnDestroy {
   saveSuccess = false;
 
   sections: { id: ProfileSection; label: string; icon: string }[] = [
-    { id: 'identite', label: 'Identité', icon: 'user' },
-    { id: 'coordonnees', label: 'Coordonnées', icon: 'map-pin' },
-    { id: 'sante', label: 'Santé & antécédents', icon: 'heart' },
-    { id: 'mutuelle', label: 'Mutuelle & assurance', icon: 'shield' },
-    { id: 'notifications', label: 'Notifications', icon: 'bell' },
-    { id: 'securite', label: 'Sécurité & accès', icon: 'lock' },
+    { id: 'identite',      label: 'Identité',           icon: 'user'    },
+    { id: 'coordonnees',   label: 'Coordonnées',        icon: 'map-pin' },
+    { id: 'sante',         label: 'Santé & antécédents', icon: 'heart'   },
+    { id: 'notifications', label: 'Notifications',      icon: 'bell'    },
+    { id: 'securite',      label: 'Sécurité & accès',   icon: 'lock'    },
   ];
 
-  // Identité
-  firstName = 'Bechir';
-  lastName = 'Kanzari';
-  birthDate = '1989-03-14';
-  gender = 'M';
-  nationality = 'Tunisienne';
+  // Identité — loaded from connected user
+  firstName = '';
+  lastName  = '';
+  birthDate = '';
+  gender    = '';
+  initials  = '';
 
   // Coordonnées
-  email = 'bechir.kanzari@gmail.com';
-  phone = '+216 22 451 308';
-  address = '14 rue des Oliviers';
-  city = 'Tunis';
-  postalCode = '1002';
+  email      = '';
+  phone      = '';
+  address    = '';
+  city       = '';
+  postalCode = '';
 
   // Santé
-  height = '1.78';
-  weight = '82.4';
-  bloodGroup = 'A+';
-  allergies = 'Fruits à coque, lactose';
-  treatments = 'Aucun traitement en cours';
-  antecedents = 'Aucun antécédent notable';
-
-  // Mutuelle
-  mutuelleName = 'CNAM';
-  mutuelleNum = 'TN-0042 851';
-  mutuellePlan = 'Couverture de base';
-  mutuelleExpiry = '2026-12-31';
+  height     = '';
+  weight     = '';
+  allergies  = '';
+  treatments = '';
+  antecedents = '';
 
   // Notifications
-  notifRdv = true;
-  notifSms = true;
-  notifEmail = true;
-  notifRappel = true;
+  notifRdv       = true;
+  notifSms       = true;
+  notifEmail     = true;
   notifResultats = false;
   notifActualites = false;
 
   // Sécurité
   currentPassword = '';
-  newPassword = '';
+  newPassword     = '';
   confirmPassword = '';
+
+  constructor(private auth: AuthService) {}
 
   save() {
     this.saveSuccess = true;
@@ -77,6 +71,19 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     document.body.classList.add('has-shell');
+    const user = this.auth.currentUser;
+    if (user) {
+      this.firstName = user.prenom;
+      this.lastName  = user.nom;
+      this.email     = user.email;
+      this.phone     = user.telephone || '';
+      this.initials  = (user.prenom[0] + user.nom[0]).toUpperCase();
+      if (user.patient) {
+        this.address = user.patient.adresse || '';
+        this.allergies = user.patient.allergie || '';
+        this.gender    = user.patient.sexe || '';
+      }
+    }
   }
 
   ngOnDestroy() {

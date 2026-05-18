@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-register',
@@ -12,20 +13,20 @@ import { Router, RouterLink } from '@angular/router';
 })
 export class RegisterComponent {
   firstName = '';
-  lastName = '';
-  email = '';
-  phone = '';
-  password = '';
-  confirm = '';
-  accept = false;
-  loading = false;
-  error = '';
+  lastName  = '';
+  email     = '';
+  phone     = '';
+  password  = '';
+  confirm   = '';
+  accept    = false;
+  loading   = false;
+  error     = '';
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private auth: AuthService) {}
 
   submit() {
     this.error = '';
-    if (!this.firstName || !this.lastName || !this.email || !this.password) {
+    if (!this.firstName || !this.lastName || !this.email || !this.phone || !this.password) {
       this.error = 'Veuillez compléter tous les champs obligatoires.';
       return;
     }
@@ -38,13 +39,30 @@ export class RegisterComponent {
       return;
     }
     if (!this.accept) {
-      this.error = 'Vous devez accepter les conditions d\'utilisation.';
+      this.error = "Vous devez accepter les conditions d'utilisation.";
       return;
     }
+
     this.loading = true;
-    setTimeout(() => {
-      this.loading = false;
-      this.router.navigate(['/dashboard']);
-    }, 800);
+    this.auth.register({
+      prenom: this.firstName.trim(),
+      nom: this.lastName.trim(),
+      email: this.email.trim().toLowerCase(),
+      telephone: this.phone.trim(),
+      password: this.password,
+    }).subscribe({
+      next: () => {
+        this.loading = false;
+        this.router.navigate(['/complete-profile']);
+      },
+      error: (err) => {
+        this.loading = false;
+        this.error = err.error?.error ?? 'Une erreur est survenue. Veuillez réessayer.';
+      }
+    });
+  }
+
+  loginWithGoogle() {
+    window.location.href = 'http://localhost:5000/api/auth/google';
   }
 }
