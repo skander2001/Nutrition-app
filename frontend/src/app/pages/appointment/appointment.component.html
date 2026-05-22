@@ -13,32 +13,24 @@
 
       <!-- Stepper -->
       <div class="stepper">
-        <div class="step" [class.active]="step >= 1" [class.done]="step > 1">
+        <div class="step" [class.active]="step >= 1" [class.done]="step > 1 || booked">
           <div class="step-circle">
-            <svg *ngIf="step > 1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 13l4 4L19 7"/></svg>
-            <span *ngIf="step <= 1">1</span>
+            <svg *ngIf="step > 1 || booked" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 13l4 4L19 7"/></svg>
+            <span *ngIf="step <= 1 && !booked">1</span>
           </div>
           <div class="step-info">
             <span class="step-num">Étape 1</span>
-            <span class="step-lbl">Motif</span>
+            <span class="step-lbl">Date &amp; heure</span>
           </div>
         </div>
-        <div class="step-line" [class.active]="step > 1"></div>
-        <div class="step" [class.active]="step >= 2" [class.done]="step > 2">
+        <div class="step-line" [class.active]="step > 1 || booked"></div>
+        <div class="step" [class.active]="step >= 2">
           <div class="step-circle">
-            <svg *ngIf="step > 2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 13l4 4L19 7"/></svg>
-            <span *ngIf="step <= 2">2</span>
+            <svg *ngIf="booked" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 13l4 4L19 7"/></svg>
+            <span *ngIf="!booked">2</span>
           </div>
           <div class="step-info">
             <span class="step-num">Étape 2</span>
-            <span class="step-lbl">Date & heure</span>
-          </div>
-        </div>
-        <div class="step-line" [class.active]="step > 2"></div>
-        <div class="step" [class.active]="step >= 3">
-          <div class="step-circle">3</div>
-          <div class="step-info">
-            <span class="step-num">Étape 3</span>
             <span class="step-lbl">Confirmation</span>
           </div>
         </div>
@@ -50,34 +42,6 @@
 
           <!-- STEP 1 -->
           <ng-container *ngIf="step === 1">
-            <div class="card section-card">
-              <div class="section-hd">
-                <h3>Motif de la consultation</h3>
-                <p class="section-sub">Choisissez le motif principal de votre visite</p>
-              </div>
-              <div class="reason-grid">
-                <button
-                  *ngFor="let r of reasons"
-                  class="reason-chip"
-                  [class.selected]="selectedReason === r.id"
-                  (click)="selectedReason = r.id"
-                >
-                  <span class="reason-icon">{{ r.icon }}</span>
-                  <span class="reason-lbl">{{ r.label }}</span>
-                </button>
-              </div>
-            </div>
-
-            <div class="step-actions">
-              <button class="btn lg" [disabled]="!canGoStep2" (click)="goStep2()">
-                Continuer vers la date
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-              </button>
-            </div>
-          </ng-container>
-
-          <!-- STEP 2 -->
-          <ng-container *ngIf="step === 2">
             <div class="card section-card">
               <div class="section-hd">
                 <h3>Choisissez une date</h3>
@@ -119,51 +83,53 @@
                 <p class="section-sub">{{ selectedDateLabel }}</p>
               </div>
 
-              <div class="slots-section">
-                <div class="slots-lbl">Matin</div>
-                <div class="slots-grid">
-                  <button
-                    *ngFor="let s of morningSlots"
-                    class="slot"
-                    [class.unavailable]="!s.available"
-                    [class.selected]="selectedSlot === s.time"
-                    [disabled]="!s.available"
-                    (click)="selectedSlot = s.time"
-                  >{{ s.time }}</button>
-                </div>
-                <div class="slots-lbl mt">Après-midi</div>
-                <div class="slots-grid">
-                  <button
-                    *ngFor="let s of afternoonSlots"
-                    class="slot"
-                    [class.unavailable]="!s.available"
-                    [class.selected]="selectedSlot === s.time"
-                    [disabled]="!s.available"
-                    (click)="selectedSlot = s.time"
-                  >{{ s.time }}</button>
-                </div>
-              </div>
-            </div>
+              <p *ngIf="slotsLoading" class="section-sub">Chargement des créneaux…</p>
 
-            <div class="card section-card">
-              <div class="section-hd">
-                <h3>Notes pour le praticien <span class="optional">— optionnel</span></h3>
+              <p *ngIf="!slotsLoading && slots.length === 0" class="section-sub">
+                Aucun créneau disponible ce jour. Choisissez une autre date.
+              </p>
+
+              <div class="slots-section" *ngIf="!slotsLoading && slots.length > 0">
+                <ng-container *ngIf="morningSlots.length > 0">
+                  <div class="slots-lbl">Matin</div>
+                  <div class="slots-grid">
+                    <button
+                      *ngFor="let s of morningSlots"
+                      class="slot"
+                      [class.unavailable]="!s.available"
+                      [class.selected]="selectedSlot === s.time"
+                      [disabled]="!s.available"
+                      (click)="selectedSlot = s.time"
+                    >{{ s.time }}</button>
+                  </div>
+                </ng-container>
+                <ng-container *ngIf="afternoonSlots.length > 0">
+                  <div class="slots-lbl mt">Après-midi</div>
+                  <div class="slots-grid">
+                    <button
+                      *ngFor="let s of afternoonSlots"
+                      class="slot"
+                      [class.unavailable]="!s.available"
+                      [class.selected]="selectedSlot === s.time"
+                      [disabled]="!s.available"
+                      (click)="selectedSlot = s.time"
+                    >{{ s.time }}</button>
+                  </div>
+                </ng-container>
               </div>
-              <textarea class="textarea notes-area" [(ngModel)]="notes" placeholder="Décrivez brièvement votre situation ou vos questions (traitements en cours, antécédents importants…)"></textarea>
             </div>
 
             <div class="step-actions">
-              <button class="btn ghost" (click)="step = 1">Retour</button>
-              <button class="btn lg" [disabled]="!canConfirm" (click)="goStep3()">
+              <button class="btn lg" [disabled]="!canConfirm" (click)="goStep2()">
                 Vérifier et confirmer
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
               </button>
             </div>
           </ng-container>
 
-          <!-- STEP 3 -->
-          <ng-container *ngIf="step === 3">
-            <div class="card section-card confirm-card">
+          <!-- STEP 2 -->
+          <ng-container *ngIf="step === 2">
+            <div class="card section-card confirm-card" *ngIf="!booked">
               <div class="confirm-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               </div>
@@ -171,10 +137,6 @@
               <p class="confirm-sub">Vérifiez les informations avant de confirmer</p>
 
               <div class="recap-list">
-                <div class="recap-row">
-                  <span class="recap-lbl">Motif</span>
-                  <span class="recap-val">{{ selectedReasonLabel }}</span>
-                </div>
                 <div class="recap-row">
                   <span class="recap-lbl">Date</span>
                   <span class="recap-val">{{ selectedDateLabel }}</span>
@@ -191,16 +153,34 @@
 
               <p class="confirm-note">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                Annulation gratuite jusqu'à 12h avant le rendez-vous. Un rappel SMS vous sera envoyé 24h avant.
+                Votre rendez-vous sera en attente de confirmation par le cabinet. Un rappel vous sera envoyé 24h avant.
               </p>
+
+              <div *ngIf="error" class="info-box warn" style="margin-top:16px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <p>{{ error }}</p>
+              </div>
             </div>
 
-            <div class="step-actions">
-              <button class="btn ghost" (click)="step = 2">Retour</button>
-              <button class="btn lg confirm-btn" (click)="confirm()">
+            <!-- SUCCESS -->
+            <div class="card section-card confirm-card" *ngIf="booked">
+              <div class="confirm-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 13l4 4L19 7"/></svg>
-                Confirmer le rendez-vous
+              </div>
+              <h3 class="confirm-title">Rendez-vous enregistré&nbsp;!</h3>
+              <p class="confirm-sub">{{ selectedDateLabel }} à {{ selectedSlot }} — en attente de confirmation</p>
+            </div>
+
+            <div class="step-actions" *ngIf="!booked">
+              <button class="btn ghost" (click)="step = 1">Retour</button>
+              <button class="btn lg confirm-btn" [disabled]="loading" (click)="confirm()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 13l4 4L19 7"/></svg>
+                {{ loading ? 'Réservation…' : 'Confirmer le rendez-vous' }}
               </button>
+            </div>
+
+            <div class="step-actions" *ngIf="booked">
+              <button class="btn lg" (click)="goDashboard()">Voir mon dossier</button>
             </div>
           </ng-container>
 
@@ -232,14 +212,10 @@
             <p class="prac-bio">Spécialisée en nutrition clinique, prise en charge du diabète, de l'obésité et des troubles métaboliques.</p>
           </div>
 
-          <div class="card recap-aside" *ngIf="selectedReason || selectedDate">
+          <div class="card recap-aside" *ngIf="selectedDate">
             <div class="card-hd"><h3>Votre sélection</h3></div>
             <div class="recap-aside-list">
-              <div class="recap-aside-row" *ngIf="selectedReason">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
-                <span>{{ selectedReasonLabel }}</span>
-              </div>
-              <div class="recap-aside-row" *ngIf="selectedDate">
+              <div class="recap-aside-row">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                 <span>{{ selectedDateLabel }}<span *ngIf="selectedSlot"> · {{ selectedSlot }}</span></span>
               </div>
@@ -259,13 +235,6 @@
               <div>
                 <div class="info-aside-lbl">Contact</div>
                 <div class="info-aside-val">+216 71 234 567</div>
-              </div>
-            </div>
-            <div class="info-aside-row">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="1" y="5" width="22" height="14" rx="2"/><polyline points="1 10 12 16 23 10"/></svg>
-              <div>
-                <div class="info-aside-lbl">Politique d'annulation</div>
-                <div class="info-aside-val">Gratuite jusqu'à 12h avant</div>
               </div>
             </div>
           </div>

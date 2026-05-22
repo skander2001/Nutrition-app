@@ -214,6 +214,66 @@
 
 .mini-chart { height: 56px; margin-top: 6px; }
 
+/* Suivi nutritionnel preview card */
+.suivi-preview-card .card-hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px 12px;
+  border-bottom: 1px solid var(--line);
+}
+.suivi-preview-card .card-hd h3 { margin: 0; font-size: .9rem; font-weight: 600; }
+
+.suivi-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0;
+  border-bottom: 1px solid var(--line);
+}
+.suivi-stat {
+  padding: 14px 16px;
+  border-right: 1px solid var(--line);
+}
+.suivi-stat:last-child { border-right: none; }
+
+.suivi-stat-lbl {
+  font-size: .7rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--ink-3);
+  margin-bottom: 4px;
+}
+.suivi-stat-val {
+  font-size: 1.15rem;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--ink);
+}
+.suivi-stat-val span { font-size: .75rem; color: var(--ink-3); font-weight: 500; }
+
+.suivi-stat-delta {
+  font-size: .72rem;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--ink-3);
+  margin-top: 3px;
+}
+.suivi-stat-delta.down { color: var(--ok); }
+.suivi-stat-delta.up   { color: var(--danger); }
+
+.mini-chart-wrap {
+  position: relative;
+  width: 100%;
+  height: 140px;
+  min-height: 140px;
+  overflow: hidden;
+}
+
+.mini-chart-wrap canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
 @media (max-width: 1280px) {
   .body-grid { grid-template-columns: 1fr; }
 }

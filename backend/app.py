@@ -6,8 +6,12 @@ from models import db
 from models.user import User
 from models.patient import Patient
 from models.nutritionniste import Nutritionniste
+from models.rendez_vous import RendezVous, Disponibilite
+from models.consultation import Consultation
 from controllers.auth_controller import auth_bp, init_oauth
 from controllers.chatbot_controller import chatbot_bp
+from controllers.appointment_controller import appointment_bp
+from controllers.consultation_controller import consultation_bp
 from services.auth_service import bcrypt
 
 def create_app():
@@ -27,6 +31,8 @@ def create_app():
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(chatbot_bp)
+    app.register_blueprint(appointment_bp)
+    app.register_blueprint(consultation_bp)
 
     return app
 

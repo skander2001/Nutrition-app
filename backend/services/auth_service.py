@@ -107,3 +107,61 @@ def get_me(user_id: int) -> dict:
         raise ValueError('Utilisateur introuvable')
     token = _make_token(user)
     return _user_response(user, token)
+
+
+def update_profile(user_id: int, nom=None, prenom=None, ddn=None, telephone=None,
+                    email=None, sexe=None, adresse=None, allergie=None,
+                    maladie_chronique=None, objectif=None) -> dict:
+    user = User.query.get(user_id)
+    if not user:
+        raise ValueError('Utilisateur introuvable')
+
+    if email and email != user.email:
+        if User.query.filter(User.email == email, User.id != user_id).first():
+            raise ValueError('Cette adresse e-mail est déjà utilisée')
+        user.email = email
+
+    if nom is not None:
+        user.nom = nom
+    if prenom is not None:
+        user.prenom = prenom
+    if telephone is not None:
+        user.telephone = telephone
+    if ddn:
+        try:
+            user.ddn = datetime.strptime(ddn, '%Y-%m-%d').date()
+        except ValueError:
+            raise ValueError('Date de naissance invalide')
+
+    patient = user.patient
+    if patient:
+        if sexe is not None:
+            patient.sexe = sexe or None
+        if adresse is not None:
+            patient.adresse = adresse
+        if allergie is not None:
+            patient.allergie = allergie
+        if maladie_chronique is not None:
+            patient.maladie_chronique = maladie_chronique
+        if objectif is not None:
+            patient.objectif = objectif
+
+    db.session.commit()
+    token = _make_token(user)
+    return _user_response(user, token)
+
+
+def change_password(user_id: int, current_password: str, new_password: str) -> dict:
+    user = User.query.get(user_id)
+    if not user:
+        raise ValueError('Utilisateur introuvable')
+    if not user.password:
+        raise ValueError('Ce compte utilise la connexion Google, le mot de passe ne peut pas être modifié')
+    if not bcrypt.check_password_hash(user.password, current_password or ''):
+        raise ValueError('Mot de passe actuel incorrect')
+    if not new_password or len(new_password) < 8:
+        raise ValueError('Le nouveau mot de passe doit contenir au moins 8 caractères')
+
+    user.password = bcrypt.generate_password_hash(new_password).decode('utf-8')
+    db.session.commit()
+    return {'message': 'Mot de passe mis à jour'}

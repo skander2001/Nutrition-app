@@ -113,3 +113,41 @@ def me():
         return jsonify(result), 200
     except ValueError as e:
         return jsonify({'error': str(e)}), 404
+
+
+@auth_bp.patch('/profile')
+@require_auth
+def profile_update():
+    data = request.get_json(silent=True) or {}
+    try:
+        result = auth_service.update_profile(
+            user_id=request.user_id,
+            nom=data.get('nom'),
+            prenom=data.get('prenom'),
+            ddn=data.get('ddn'),
+            telephone=data.get('telephone'),
+            email=data.get('email'),
+            sexe=data.get('sexe'),
+            adresse=data.get('adresse'),
+            allergie=data.get('allergie'),
+            maladie_chronique=data.get('maladie_chronique'),
+            objectif=data.get('objectif'),
+        )
+        return jsonify(result), 200
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+
+
+@auth_bp.patch('/password')
+@require_auth
+def password_change():
+    data = request.get_json(silent=True) or {}
+    try:
+        result = auth_service.change_password(
+            request.user_id,
+            data.get('current_password'),
+            data.get('new_password'),
+        )
+        return jsonify(result), 200
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400

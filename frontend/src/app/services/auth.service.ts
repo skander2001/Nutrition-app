@@ -12,6 +12,7 @@ export interface AuthUser {
   prenom: string;
   email: string;
   telephone: string;
+  ddn?: string | null;
   role: 'patient' | 'nutritionniste';
   token: string;
   profile_complete?: boolean;
@@ -58,6 +59,25 @@ export class AuthService {
     return this.http.get<AuthUser>(`${API}/me`, {
       headers: { Authorization: `Bearer ${this.token}` }
     }).pipe(tap(res => this._store(res)));
+  }
+
+  updateProfile(body: {
+    nom?: string; prenom?: string; ddn?: string | null;
+    telephone?: string; email?: string; sexe?: string;
+    adresse?: string; allergie?: string;
+    maladie_chronique?: string; objectif?: string;
+  }): Observable<AuthUser> {
+    return this.http.patch<AuthUser>(`${API}/profile`, body, {
+      headers: { Authorization: `Bearer ${this.token}` }
+    }).pipe(tap(res => this._store(res)));
+  }
+
+  changePassword(body: {
+    current_password: string; new_password: string;
+  }): Observable<{ message: string }> {
+    return this.http.patch<{ message: string }>(`${API}/password`, body, {
+      headers: { Authorization: `Bearer ${this.token}` }
+    });
   }
 
   get token(): string | null {

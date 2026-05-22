@@ -48,6 +48,11 @@
             Modifications enregistrées
           </div>
 
+          <div *ngIf="error" class="info-box warn" style="margin-bottom:16px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <p>{{ error }}</p>
+          </div>
+
           <!-- IDENTITÉ -->
           <div class="card profile-section" *ngIf="activeSection === 'identite'">
             <div class="section-hd">
@@ -104,16 +109,6 @@
                 <label class="lbl">Adresse postale</label>
                 <input class="input" [(ngModel)]="address" />
               </div>
-              <div class="row-2">
-                <div class="field">
-                  <label class="lbl">Ville</label>
-                  <input class="input" [(ngModel)]="city" />
-                </div>
-                <div class="field">
-                  <label class="lbl">Code postal</label>
-                  <input class="input" [(ngModel)]="postalCode" />
-                </div>
-              </div>
             </div>
             <div class="section-foot">
               <button class="btn" (click)="save()">Enregistrer les modifications</button>
@@ -127,27 +122,20 @@
               <p class="section-sub">Informations médicales partagées avec votre praticien</p>
             </div>
             <div class="section-body">
-              <div class="row-2">
-                <div class="field">
-                  <label class="lbl">Taille (m)</label>
-                  <input class="input" [(ngModel)]="height" placeholder="1.75" />
-                </div>
-                <div class="field">
-                  <label class="lbl">Poids actuel (kg)</label>
-                  <input class="input" [(ngModel)]="weight" placeholder="70" />
-                </div>
+              <div class="field">
+                <label class="lbl">Objectif</label>
+                <select class="select" [(ngModel)]="objectif">
+                  <option value="">Non précisé</option>
+                  <option *ngFor="let o of objectifs" [value]="o.value">{{ o.label }}</option>
+                </select>
               </div>
               <div class="field">
                 <label class="lbl">Allergies alimentaires</label>
                 <input class="input" [(ngModel)]="allergies" placeholder="Gluten, lactose, fruits à coque…" />
               </div>
               <div class="field">
-                <label class="lbl">Traitements en cours</label>
-                <textarea class="textarea" [(ngModel)]="treatments" rows="2" placeholder="Aucun traitement en cours"></textarea>
-              </div>
-              <div class="field">
-                <label class="lbl">Antécédents médicaux</label>
-                <textarea class="textarea" [(ngModel)]="antecedents" rows="3" placeholder="Aucun antécédent notable"></textarea>
+                <label class="lbl">Maladies chroniques / antécédents</label>
+                <textarea class="textarea" [(ngModel)]="maladieChronique" rows="3" placeholder="Aucun antécédent notable"></textarea>
               </div>
             </div>
             <div class="section-foot">
