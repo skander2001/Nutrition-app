@@ -80,6 +80,19 @@ export class AuthService {
     });
   }
 
+  forgotPassword(email: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${API}/forgot-password`, { email });
+  }
+
+  resetPassword(token: string, new_password: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${API}/reset-password`, { token, new_password });
+  }
+
+  /** Temporarily stores a token (used after OAuth redirect before /me is called). */
+  storeToken(token: string): void {
+    localStorage.setItem(TOKEN_KEY, token);
+  }
+
   get token(): string | null {
     return localStorage.getItem(TOKEN_KEY);
   }

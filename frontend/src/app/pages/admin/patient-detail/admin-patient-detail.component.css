@@ -1,0 +1,157 @@
+/* Patient detail — page-specific styles. Shared in src/styles.css. */
+
+/* Information grid */
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.info-grid > div {
+  padding: 14px 16px;
+  background: var(--bg);
+  border-radius: 10px;
+}
+.info-grid label {
+  display: block;
+  font-size: 10.5px;
+  color: var(--ink-3);
+  text-transform: uppercase;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: .05em;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.info-grid > div > div {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* Plans list */
+.plan-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.plan-list li {
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.plan-hd {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.plan-hd strong { color: var(--ink); font-size: 14px; font-weight: 700; }
+.plan-meta {
+  font-size: 12px;
+  color: var(--ink-3);
+  margin-top: 2px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.plan-content {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+}
+.day {
+  background: var(--brand-soft);
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+.day-name {
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--brand);
+  margin-bottom: 6px;
+  text-transform: capitalize;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: .04em;
+}
+.meals {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+}
+.meal-name {
+  color: var(--ink-3);
+  margin-right: 6px;
+  text-transform: capitalize;
+  font-weight: 600;
+}
+.meal-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.meal-repas {
+  color: var(--ink);
+  font-weight: 500;
+}
+.meal-macros {
+  color: var(--ink-3);
+  font-size: 11px;
+}
+
+.plan-notes {
+  background: var(--warn-soft);
+  padding: 10px 14px;
+  border-radius: 10px;
+  margin-top: 12px;
+  font-size: 12.5px;
+  color: #92400e;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+/* ── AI generation spinner ──────────────────────────────────── */
+
+.gen-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding: 40px 24px 32px;
+  text-align: center;
+}
+.gen-spinner {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 4px solid var(--brand-soft);
+  border-top-color: var(--brand);
+  animation: spin .8s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.gen-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+}
+.gen-sub {
+  font-size: 13px;
+  color: var(--ink-3);
+  margin: 0;
+  line-height: 1.6;
+}
+
+@media (max-width: 900px) {
+  .info-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 600px) {
+  .info-grid { grid-template-columns: 1fr; }
+}

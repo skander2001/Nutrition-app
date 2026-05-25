@@ -1,0 +1,26 @@
+/* Admin dashboard — overrides only.
+   Common styles (.admin-page, .stat-card, .card, .btn-mini, .badge, .rdv-list…)
+   live in src/styles.css under "ADMIN Design System". */
+
+/* Welcome eyebrow above page title */
+.eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .7rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--brand);
+  margin-bottom: 4px;
+}
+
+/* RDV time bubble in the "en attente" list */
+.rdv-time.bubble {
+  background: var(--brand-soft);
+  color: var(--brand);
+  border-radius: 10px;
+  padding: 8px 10px;
+  text-align: center;
+  min-width: 90px;
+}
+.rdv-time.bubble .d { color: var(--brand); }
+
+.actions { display: flex; gap: 6px; }

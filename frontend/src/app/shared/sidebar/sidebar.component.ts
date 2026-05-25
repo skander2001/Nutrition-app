@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
-export type SidebarKey = 'appointment' | 'records' | 'plan' | 'tracking' | 'profile';
+export type SidebarKey = 'appointment' | 'records' | 'plan' | 'tracking' | 'profile' | 'notifications';
 
 @Component({
   selector: 'app-sidebar',

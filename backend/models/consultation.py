@@ -14,6 +14,9 @@ class Consultation(db.Model):
     diagnostic         = db.Column(db.String(255))
     remarque           = db.Column(db.String(255))
 
+    # `rdv.consultations` + `consultation.rendez_vous`
+    rendez_vous = db.relationship('RendezVous', backref='consultations')
+
     @staticmethod
     def _split_tension(value):
         """'12.3/8.0' -> (12.3, 8.0). Renvoie (None, None) si non parsable."""
@@ -30,14 +33,23 @@ class Consultation(db.Model):
         taille = float(self.taille) if self.taille is not None else None
         imc = round(poids / (taille * taille), 1) if poids and taille else None
         sys_, dia = self._split_tension(self.tension_arterielle)
+        date_iso = self.date_consultation.isoformat() if self.date_consultation else None
+        glycemie = float(self.glycemie) if self.glycemie is not None else None
         return {
+            # patient-side aliases (back-compat)
             'id': self.id_consultation,
-            'date': self.date_consultation.isoformat() if self.date_consultation else None,
+            'date': date_iso,
+            'tension': self.tension_arterielle,
+            # admin-side canonical column names
+            'id_consultation': self.id_consultation,
+            'id_rendez_vous': self.id_rendez_vous,
+            'date_consultation': date_iso,
+            'tension_arterielle': self.tension_arterielle,
+            # shared
             'poids': poids,
             'taille': taille,
             'imc': imc,
-            'glycemie': float(self.glycemie) if self.glycemie is not None else None,
-            'tension': self.tension_arterielle,
+            'glycemie': glycemie,
             'tension_systolique': sys_,
             'tension_diastolique': dia,
             'diagnostic': self.diagnostic,

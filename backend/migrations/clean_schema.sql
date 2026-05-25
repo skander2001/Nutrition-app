@@ -14,6 +14,9 @@
 
 SET FOREIGN_KEY_CHECKS = 0;
 
+DROP TABLE IF EXISTS `patient_meal_plan`;
+DROP TABLE IF EXISTS `meal_plan_template`;
+DROP TABLE IF EXISTS `notification`;
 DROP TABLE IF EXISTS `rendez_vous`;
 DROP TABLE IF EXISTS `disponibilite`;
 DROP TABLE IF EXISTS `disponibilites`;
@@ -58,6 +61,8 @@ CREATE TABLE `patient` (
   `id_user`           INT NOT NULL,
   `sexe`              ENUM('M','F') DEFAULT NULL,
   `adresse`           VARCHAR(255) DEFAULT NULL,
+  `taille`            DECIMAL(4,2) DEFAULT NULL,
+  `poids_initial`     DECIMAL(5,2) DEFAULT NULL,
   `allergie`          VARCHAR(255) DEFAULT NULL,
   `maladie_chronique` VARCHAR(255) DEFAULT NULL,
   `objectif`          VARCHAR(255) DEFAULT NULL,
@@ -133,6 +138,60 @@ CREATE TABLE `consultation` (
   KEY `id_rendez_vous` (`id_rendez_vous`),
   CONSTRAINT `consultation_rdv_fk` FOREIGN KEY (`id_rendez_vous`)
     REFERENCES `rendez_vous` (`id_rendez_vous`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- ------------------------------------------------------------
+--  notification (utilisateur)
+-- ------------------------------------------------------------
+CREATE TABLE `notification` (
+  `id`         INT NOT NULL AUTO_INCREMENT,
+  `id_user`    INT NOT NULL,
+  `titre`      VARCHAR(150) NOT NULL,
+  `message`    TEXT,
+  `type`       VARCHAR(20) DEFAULT 'info',
+  `lien`       VARCHAR(255) DEFAULT NULL,
+  `lu`         TINYINT(1) DEFAULT 0,
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `id_user_idx` (`id_user`),
+  CONSTRAINT `notification_user_fk` FOREIGN KEY (`id_user`)
+    REFERENCES `user` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- ------------------------------------------------------------
+--  meal_plan_template (modèles de plans alimentaires)
+-- ------------------------------------------------------------
+CREATE TABLE `meal_plan_template` (
+  `id`          INT NOT NULL AUTO_INCREMENT,
+  `nom`         VARCHAR(150) NOT NULL,
+  `objectif`    VARCHAR(50) DEFAULT NULL,
+  `description` TEXT,
+  `kcal_total`  INT DEFAULT NULL,
+  `contenu`     TEXT,
+  `created_at`  DATETIME DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- ------------------------------------------------------------
+--  patient_meal_plan (plan assigné à un patient)
+-- ------------------------------------------------------------
+CREATE TABLE `patient_meal_plan` (
+  `id`          INT NOT NULL AUTO_INCREMENT,
+  `id_patient`  INT NOT NULL,
+  `id_template` INT DEFAULT NULL,
+  `nom`         VARCHAR(150) DEFAULT NULL,
+  `date_debut`  DATE DEFAULT NULL,
+  `date_fin`    DATE DEFAULT NULL,
+  `contenu`     TEXT,
+  `notes`       TEXT,
+  `created_at`  DATETIME DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `pmp_patient_idx` (`id_patient`),
+  KEY `pmp_template_idx` (`id_template`),
+  CONSTRAINT `pmp_patient_fk` FOREIGN KEY (`id_patient`)
+    REFERENCES `patient` (`id_patient`) ON DELETE CASCADE,
+  CONSTRAINT `pmp_template_fk` FOREIGN KEY (`id_template`)
+    REFERENCES `meal_plan_template` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- ============================================================

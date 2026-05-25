@@ -1,0 +1,134 @@
+<div class="shell">
+  <app-sidebar active="tracking"></app-sidebar>
+
+  <main class="shell-main">
+    <app-topbar></app-topbar>
+
+    <div class="page">
+      <div class="page-hd">
+        <div>
+          <h1 class="page-title">Suivi nutritionnel</h1>
+          <p class="page-sub">Évolution de vos indicateurs de santé</p>
+        </div>
+        <div *ngIf="!loading && !error && consultations.length > 0" class="page-meta">
+          {{ consultations.length }} consultation{{ consultations.length > 1 ? 's' : '' }}
+        </div>
+      </div>
+
+      <div *ngIf="loading" class="state-msg">Chargement des données…</div>
+      <div *ngIf="!loading && error" class="state-msg error">{{ error }}</div>
+      <div *ngIf="!loading && !error && consultations.length === 0" class="state-msg">
+        Aucune consultation enregistrée pour le moment.
+      </div>
+
+      <div *ngIf="!loading && !error && consultations.length > 0" class="summary-row">
+        <div class="summary-card">
+          <div class="s-label">Poids actuel</div>
+          <div class="s-val">{{ latest?.poids ?? '—' }} <span class="s-unit">kg</span></div>
+          <div class="s-delta" [class.down]="delta('poids').dir === 'down'" [class.up]="delta('poids').dir === 'up'">
+            {{ delta('poids').val }} kg depuis le début
+          </div>
+        </div>
+        <div class="summary-card">
+          <div class="s-label">IMC</div>
+          <div class="s-val">{{ latest?.imc ?? '—' }}</div>
+          <div class="s-delta" [class.down]="delta('imc').dir === 'down'" [class.up]="delta('imc').dir === 'up'">
+            {{ delta('imc').val }} depuis le début
+          </div>
+        </div>
+        <div class="summary-card">
+          <div class="s-label">Glycémie</div>
+          <div class="s-val">{{ latest?.glycemie ?? '—' }} <span class="s-unit">g/L</span></div>
+          <div class="s-delta" [class.down]="delta('glycemie').dir === 'down'" [class.up]="delta('glycemie').dir === 'up'">
+            {{ delta('glycemie').val }} g/L depuis le début
+          </div>
+        </div>
+        <div class="summary-card">
+          <div class="s-label">Tension</div>
+          <div class="s-val">{{ latest?.tension ?? '—' }}</div>
+          <div class="s-sub">systolique / diastolique</div>
+        </div>
+        <div class="summary-card">
+          <div class="s-label">Dernière consultation</div>
+          <div class="s-val s-date">{{ latest?.date ?? '—' }}</div>
+          <div class="s-sub">{{ latest?.diagnostic ?? '' }}</div>
+        </div>
+      </div>
+
+      <div *ngIf="!loading && !error && consultations.length > 0" class="charts-grid">
+        <div class="card chart-card">
+          <div class="chart-hd"><span class="chart-dot brand"></span>Poids (kg)</div>
+          <div class="chart-wrap"><canvas #poidsCanvas></canvas></div>
+        </div>
+        <div class="card chart-card">
+          <div class="chart-hd">
+            <span class="chart-dot warn"></span>Indice de masse corporelle
+            <span class="chart-legend">Normal · Surpoids · Obésité</span>
+          </div>
+          <div class="chart-wrap"><canvas #imcCanvas></canvas></div>
+        </div>
+        <div class="card chart-card">
+          <div class="chart-hd">
+            <span class="chart-dot ok"></span>Glycémie (g/L)
+            <span class="chart-legend">Normale · Limite · Élevée</span>
+          </div>
+          <div class="chart-wrap"><canvas #glycemieCanvas></canvas></div>
+        </div>
+        <div class="card chart-card">
+          <div class="chart-hd"><span class="chart-dot danger"></span>Tension artérielle (cmHg)</div>
+          <div class="chart-wrap"><canvas #tensionCanvas></canvas></div>
+        </div>
+      </div>
+
+      <div *ngIf="!loading && !error && consultations.length > 0" class="card table-card">
+        <div class="card-hd">
+          <h3>Tableau récapitulatif des consultations</h3>
+          <span class="card-hd-sub">De la plus récente à la plus ancienne</span>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>N°</th>
+                <th>Date</th>
+                <th>Poids</th>
+                <th>Variation</th>
+                <th>IMC</th>
+                <th>Glycémie</th>
+                <th>Tension</th>
+                <th>Diagnostic &amp; remarque</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let r of rows">
+                <td class="mono num">{{ r.num }}</td>
+                <td class="mono">{{ r.date }}</td>
+                <td class="mono strong">{{ r.poids ?? '—' }} kg</td>
+                <td class="mono">
+                  <span class="var"
+                        [class.down]="r.poidsVar.dir === 'down'"
+                        [class.up]="r.poidsVar.dir === 'up'">{{ r.poidsVar.txt }}</span>
+                </td>
+                <td class="mono">
+                  {{ r.imc ?? '—' }}
+                  <span class="tag" [ngClass]="r.imcStatus.cls">{{ r.imcStatus.label }}</span>
+                </td>
+                <td class="mono">
+                  {{ r.glycemie ?? '—' }}
+                  <span class="tag" [ngClass]="r.glyStatus.cls">{{ r.glyStatus.label }}</span>
+                </td>
+                <td class="mono">{{ r.tension ?? '—' }}</td>
+                <td class="diag">
+                  <div class="diag-main">{{ r.diagnostic ?? '—' }}</div>
+                  <div class="diag-sub" *ngIf="r.remarque">{{ r.remarque }}</div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<app-chatbot></app-chatbot>

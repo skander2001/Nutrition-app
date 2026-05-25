@@ -22,3 +22,14 @@ class Config:
     GOOGLE_CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET', '')
     FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:4200')
     SECRET_KEY = os.getenv('JWT_SECRET', 'change-me-in-production')
+
+    MAIL_SERVER   = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
+    MAIL_PORT     = int(os.getenv('MAIL_PORT', 587))
+    MAIL_USE_TLS  = True
+    MAIL_USERNAME = os.getenv('MAIL_USERNAME', '')
+    MAIL_PASSWORD = os.getenv('MAIL_PASSWORD', '')
+    MAIL_DEFAULT_SENDER = os.getenv('MAIL_DEFAULT_SENDER', 'NutriCare <noreply@nutricare.tn>')
+
+
+    OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+    CHROMA_DB_PATH = os.getenv('CHROMA_DB_PATH', './chroma_db')

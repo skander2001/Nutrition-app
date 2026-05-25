@@ -44,3 +44,18 @@ def my_list():
         return jsonify({'appointments': appointment_service.list_for_user(request.user_id)}), 200
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
+
+
+@appointment_bp.get('/my-plans')
+@require_auth
+def my_plans():
+    from models.patient import Patient
+    from models.meal_plan import PatientMealPlan
+    patient = Patient.query.filter_by(id_user=request.user_id).first()
+    if not patient:
+        return jsonify([]), 200
+    plans = PatientMealPlan.query\
+        .filter_by(id_patient=patient.id_patient)\
+        .order_by(PatientMealPlan.created_at.desc())\
+        .all()
+    return jsonify([p.to_dict() for p in plans]), 200

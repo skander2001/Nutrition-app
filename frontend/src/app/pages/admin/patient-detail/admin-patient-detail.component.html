@@ -1,0 +1,209 @@
+<div class="shell">
+  <app-admin-sidebar active="patients"></app-admin-sidebar>
+
+  <main class="shell-main">
+    <app-topbar userRole="Nutritionniste"></app-topbar>
+
+    <div class="admin-page">
+      <a routerLink="/admin/patients" class="back-link">← Retour à la liste</a>
+
+      <div *ngIf="loading" class="empty">Chargement…</div>
+      <div *ngIf="error" class="alert error">{{ error }}</div>
+
+      <ng-container *ngIf="!loading && patient">
+        <header class="page-hd">
+          <div>
+            <h1>{{ patient.user?.prenom }} {{ patient.user?.nom }}</h1>
+            <div class="muted">{{ patient.user?.email }} · {{ patient.user?.telephone }}</div>
+          </div>
+        </header>
+
+        <!-- Infos patient (lecture seule) -->
+        <section class="card">
+          <div class="section-hd">
+            <h2>Informations médicales</h2>
+          </div>
+          <div class="info-grid">
+            <div><label>Sexe</label><div>{{ patient.sexe || '—' }}</div></div>
+            <div><label>Adresse</label><div>{{ patient.adresse || '—' }}</div></div>
+            <div><label>Taille (cm)</label><div>{{ patient.taille || '—' }}</div></div>
+            <div><label>Poids initial (kg)</label><div>{{ patient.poids_initial || '—' }}</div></div>
+            <div><label>Objectif</label><div>{{ patient.objectif || '—' }}</div></div>
+            <div><label>Allergies</label><div>{{ patient.allergie || '—' }}</div></div>
+            <div><label>Maladies chroniques</label><div>{{ patient.maladie_chronique || '—' }}</div></div>
+            <div><label>Date création</label><div>{{ patient.ddc || '—' }}</div></div>
+          </div>
+        </section>
+
+        <!-- Consultations -->
+        <section class="card">
+          <div class="section-hd">
+            <h2>Historique consultations ({{ consultations.length }})</h2>
+          </div>
+          <div *ngIf="consultations.length === 0" class="empty">Aucune consultation.</div>
+          <table class="admin-table" *ngIf="consultations.length > 0">
+            <thead><tr><th>Date</th><th>Poids</th><th>Tension</th><th>Glycémie</th><th>Diagnostic</th><th>Remarque</th></tr></thead>
+            <tbody>
+              <tr *ngFor="let c of consultations">
+                <td>{{ c.date_consultation }}</td>
+                <td>{{ c.poids ?? '—' }} kg</td>
+                <td>{{ c.tension_arterielle || '—' }}</td>
+                <td>{{ c.glycemie || '—' }}</td>
+                <td>{{ c.diagnostic || '—' }}</td>
+                <td>{{ c.remarque || '—' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- Plans alimentaires -->
+        <section class="card">
+          <div class="section-hd">
+            <h2>Plans alimentaires</h2>
+            <div style="display:flex;gap:.5rem">
+              <button class="btn-secondary" (click)="openAssign()">+ Manuel</button>
+              <button class="btn-primary" (click)="openAi()">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="margin-right:.35rem"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+                Générer avec l'IA
+              </button>
+            </div>
+          </div>
+          <div *ngIf="plans.length === 0" class="empty">Aucun plan assigné.</div>
+          <ul class="plan-list" *ngIf="plans.length > 0">
+            <li *ngFor="let p of plans">
+              <div class="plan-hd">
+                <div>
+                  <strong>{{ p.nom }}</strong>
+                  <span class="muted" *ngIf="p.template_nom"> · basé sur {{ p.template_nom }}</span>
+                </div>
+                <button class="btn-danger" (click)="deletePlan(p)">Supprimer</button>
+              </div>
+              <div class="plan-meta">
+                <span *ngIf="p.date_debut">Du {{ p.date_debut }}</span>
+                <span *ngIf="p.date_fin"> au {{ p.date_fin }}</span>
+                <span *ngIf="!p.date_debut && !p.date_fin">Durée non spécifiée</span>
+              </div>
+              <div class="plan-content" *ngIf="contenuKeys(p.contenu).length > 0">
+                <div *ngFor="let jour of contenuKeys(p.contenu)" class="day">
+                  <div class="day-name">{{ jour }}</div>
+                  <div class="meals">
+                    <div *ngFor="let meal of contenuMealKeys(p.contenu, jour)" class="meal">
+                      <span class="meal-name">{{ meal }}</span>
+                      <ng-container *ngIf="isMealObject(p.contenu[jour][meal]); else plainMeal">
+                        <div class="meal-detail">
+                          <span class="meal-repas">{{ p.contenu[jour][meal].repas }}</span>
+                          <span class="meal-macros" *ngIf="p.contenu[jour][meal].calories">
+                            {{ p.contenu[jour][meal].calories }} kcal
+                            <ng-container *ngIf="p.contenu[jour][meal].proteines"> · P {{ p.contenu[jour][meal].proteines }}g</ng-container>
+                            <ng-container *ngIf="p.contenu[jour][meal].glucides"> · G {{ p.contenu[jour][meal].glucides }}g</ng-container>
+                            <ng-container *ngIf="p.contenu[jour][meal].lipides"> · L {{ p.contenu[jour][meal].lipides }}g</ng-container>
+                          </span>
+                        </div>
+                      </ng-container>
+                      <ng-template #plainMeal>
+                        <span class="meal-content">{{ p.contenu[jour][meal] }}</span>
+                      </ng-template>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <p *ngIf="p.notes" class="plan-notes">📝 {{ p.notes }}</p>
+            </li>
+          </ul>
+        </section>
+      </ng-container>
+    </div>
+  </main>
+</div>
+
+<!-- Modal génération IA -->
+<div *ngIf="aiModalOpen" class="modal-overlay" (click)="closeAi()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <header class="modal-hd">
+      <div>
+        <h2>Générer un plan alimentaire IA</h2>
+        <div class="muted">Plan 7 jours personnalisé basé sur le profil du patient.</div>
+      </div>
+      <button class="modal-close" type="button" (click)="closeAi()" [disabled]="aiGenerating" aria-label="Fermer">×</button>
+    </header>
+
+    <!-- Spinner while generating -->
+    <div *ngIf="aiGenerating" class="gen-loading">
+      <div class="gen-spinner"></div>
+      <p class="gen-title">Génération en cours…</p>
+      <p class="gen-sub">L'IA analyse le profil du patient et construit<br>un plan alimentaire personnalisé sur 7 jours.</p>
+    </div>
+
+    <form *ngIf="!aiGenerating" class="modal-body" (ngSubmit)="generateAi()" novalidate>
+      <div class="field">
+        <label class="lbl">Cuisine *</label>
+        <select class="input" name="cuisine" [(ngModel)]="aiForm.cuisine">
+          <option value="">— Choisir une cuisine —</option>
+          <option *ngFor="let c of cuisines" [value]="c">{{ c }}</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label class="lbl">Instructions supplémentaires (optionnel)</label>
+        <textarea class="input" name="notes" rows="2" [(ngModel)]="aiForm.notes"
+          placeholder="ex : éviter les fruits de mer, préférer les cuissons légères…"></textarea>
+      </div>
+
+      <div *ngIf="aiError" class="alert error">{{ aiError }}</div>
+
+      <div class="modal-foot">
+        <button class="btn-secondary" type="button" (click)="closeAi()">Annuler</button>
+        <button class="btn-add" type="submit">Générer le plan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal assigner plan -->
+<div *ngIf="assignModalOpen" class="modal-overlay" (click)="closeAssign()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <header class="modal-hd">
+      <div>
+        <h2>Assigner un plan alimentaire</h2>
+        <div class="muted">Choisissez un modèle ou créez un plan personnalisé.</div>
+      </div>
+      <button class="modal-close" type="button" (click)="closeAssign()" aria-label="Fermer">×</button>
+    </header>
+
+    <form class="modal-body" (ngSubmit)="assign()" novalidate>
+      <div class="field">
+        <label class="lbl">Template (optionnel)</label>
+        <select class="input" name="id_template" [(ngModel)]="newPlan.id_template">
+          <option value="">— Plan entièrement personnalisé —</option>
+          <option *ngFor="let t of templates" [value]="t.id">{{ t.nom }} ({{ t.objectif }})</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label class="lbl">Nom du plan</label>
+        <input class="input" name="nom" [(ngModel)]="newPlan.nom" placeholder="ex : Programme perte de poids" />
+      </div>
+
+      <div class="row-2">
+        <div class="field">
+          <label class="lbl">Date de début</label>
+          <input class="input" type="date" name="date_debut" [(ngModel)]="newPlan.date_debut" />
+        </div>
+        <div class="field">
+          <label class="lbl">Date de fin</label>
+          <input class="input" type="date" name="date_fin" [(ngModel)]="newPlan.date_fin" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="lbl">Notes</label>
+        <textarea class="input" name="notes" rows="3" [(ngModel)]="newPlan.notes" placeholder="Instructions particulières…"></textarea>
+      </div>
+
+      <div class="modal-foot">
+        <button class="btn-secondary" type="button" (click)="closeAssign()">Annuler</button>
+        <button class="btn-add" type="submit">Assigner le plan</button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -11,22 +11,22 @@ class RendezVous(db.Model):
     heure             = db.Column(db.Time, nullable=False)
     statut            = db.Column(db.Enum('en_attente', 'confirme', 'annule'), default='en_attente')
 
+    # Relationships — `patient.rendez_vous` + `rdv.patient`
+    patient = db.relationship('Patient', backref='rendez_vous')
+
     def to_dict(self):
+        date_iso = self.date_rendez_vous.isoformat() if self.date_rendez_vous else None
+        heure_str = self.heure.strftime('%H:%M') if self.heure else None
         return {
+            # patient-side aliases (back-compat)
             'id': self.id_rendez_vous,
-            'date': self.date_rendez_vous.isoformat() if self.date_rendez_vous else None,
-            'heure': self.heure.strftime('%H:%M') if self.heure else None,
+            'date': date_iso,
+            # admin-side canonical column names
+            'id_rendez_vous': self.id_rendez_vous,
+            'id_patient': self.id_patient,
+            'id_nutritionniste': self.id_nutritionniste,
+            'date_rendez_vous': date_iso,
+            # shared
+            'heure': heure_str,
             'statut': self.statut,
         }
-
-
-class Disponibilite(db.Model):
-    __tablename__ = 'disponibilite'
-
-    id_disponibilite  = db.Column(db.Integer, primary_key=True)
-    id_nutritionniste = db.Column(db.Integer, db.ForeignKey('nutritionniste.id_nutritionniste'), nullable=False)
-    jour              = db.Column(db.String(20))
-    date              = db.Column(db.Date)
-    heure_debut       = db.Column(db.Time, nullable=False)
-    heure_fin         = db.Column(db.Time, nullable=False)
-    statut            = db.Column(db.Enum('disponible', 'indisponible'), default='disponible')

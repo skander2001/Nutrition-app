@@ -1,0 +1,197 @@
+<div class="shell">
+  <app-admin-sidebar active="rendez-vous"></app-admin-sidebar>
+
+  <main class="shell-main">
+    <app-topbar userRole="Nutritionniste"></app-topbar>
+
+    <div class="admin-page">
+      <header class="page-hd">
+        <h1>Rendez-vous</h1>
+        <button class="btn-add" type="button" (click)="openCreate()">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+               stroke-width="2.5" stroke-linecap="round">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+          Nouveau rendez-vous
+        </button>
+      </header>
+
+      <div *ngIf="error" class="alert error">{{ error }}</div>
+      <div *ngIf="loading" class="empty">Chargement…</div>
+
+      <ng-container *ngIf="!loading">
+        <!-- Calendar navigation -->
+        <div class="cal-nav">
+          <button class="cal-nav-btn" (click)="prevMonth()">‹</button>
+          <span class="cal-month-label">{{ monthLabel }}</span>
+          <button class="cal-nav-btn" (click)="nextMonth()">›</button>
+        </div>
+
+        <div class="cal-layout" [class.has-panel]="selectedDate">
+
+          <!-- ── Calendar grid ─────────────────────────────────── -->
+          <div class="cal-grid">
+            <!-- Day-of-week headers -->
+            <div class="cal-dow" *ngFor="let d of DOW_LABELS">{{ d }}</div>
+
+            <!-- Day cells -->
+            <ng-container *ngFor="let week of calendarWeeks">
+              <div *ngFor="let date of week"
+                   class="cal-cell"
+                   [class.cal-empty]="!date"
+                   [class.cal-today]="date && isToday(date)"
+                   [class.cal-selected]="date === selectedDate"
+                   [class.cal-has-rdv]="date && dayRdv(date).length > 0"
+                   (click)="selectDay(date)">
+                <ng-container *ngIf="date">
+                  <span class="cal-day-num">{{ date.slice(8) | number:'1.0-0' }}</span>
+                  <div class="cal-rdv-count" *ngIf="dayRdv(date).length > 0">
+                    {{ dayRdv(date).length }}
+                  </div>
+                  <div class="cal-dots" *ngIf="dayRdv(date).length > 0">
+                    <span class="dot ok"     *ngIf="dayCountByStatus(date, 'confirme') > 0"></span>
+                    <span class="dot warn"   *ngIf="dayCountByStatus(date, 'en_attente') > 0"></span>
+                    <span class="dot danger" *ngIf="dayCountByStatus(date, 'annule') > 0"></span>
+                  </div>
+                </ng-container>
+              </div>
+            </ng-container>
+          </div>
+
+          <!-- ── Day panel ─────────────────────────────────────── -->
+          <div class="day-panel" *ngIf="selectedDate">
+            <div class="day-panel-hd">
+              <div>
+                <h3>{{ dayLabel(selectedDate) }}</h3>
+                <div class="muted">{{ selectedDayRdv.length }} rendez-vous</div>
+              </div>
+              <button class="panel-close" (click)="selectedDate = null" aria-label="Fermer">×</button>
+            </div>
+
+            <div class="day-panel-body">
+              <div *ngIf="selectedDayRdv.length === 0" class="empty" style="padding:20px 0">
+                Aucun rendez-vous ce jour.
+              </div>
+
+              <div *ngFor="let r of selectedDayRdv" class="rdv-item">
+                <div class="rdv-item-hd">
+                  <span class="rdv-time">{{ r.heure }}</span>
+                  <span class="badge"
+                        [class.ok]="r.statut === 'confirme'"
+                        [class.warn]="r.statut === 'en_attente'"
+                        [class.danger]="r.statut === 'annule'">
+                    {{ r.statut }}
+                  </span>
+                </div>
+                <a class="rdv-patient" [routerLink]="['/admin/patients', r.id_patient]">
+                  {{ r.patient?.prenom }} {{ r.patient?.nom }}
+                </a>
+                <div class="rdv-phone muted" *ngIf="r.patient?.telephone">{{ r.patient?.telephone }}</div>
+
+                <div class="rdv-actions">
+                  <button *ngIf="r.statut === 'en_attente'" class="btn-primary"
+                          (click)="setStatus(r, 'confirme')">Confirmer</button>
+                  <a *ngIf="r.statut === 'confirme'" class="btn-secondary"
+                     [routerLink]="['/admin/consultations']"
+                     [queryParams]="{id_rdv: r.id_rendez_vous}">
+                    {{ r.has_consultation ? 'Voir consultation' : '+ Consultation' }}
+                  </a>
+                  <button *ngIf="r.statut !== 'annule'" class="btn-secondary"
+                          (click)="setStatus(r, 'annule')">Annuler</button>
+                  <button class="btn-danger" (click)="remove(r)">Suppr.</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </ng-container>
+    </div>
+  </main>
+</div>
+
+<!-- ── Modal : Nouveau rendez-vous ────────────────────────────── -->
+<div class="modal-overlay" *ngIf="showCreate" (click)="closeCreate()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <header class="modal-hd">
+      <div>
+        <h2>Nouveau rendez-vous</h2>
+        <div class="muted">Planifiez un rendez-vous pour un patient.</div>
+      </div>
+      <button class="modal-close" type="button" (click)="closeCreate()" aria-label="Fermer">×</button>
+    </header>
+
+    <form class="modal-body" (ngSubmit)="submitCreate()" novalidate>
+      <div class="field combo">
+        <label class="lbl">Patient *</label>
+        <input class="input" name="patientQuery" autocomplete="off"
+               placeholder="Rechercher par nom, prénom, email ou téléphone…"
+               [(ngModel)]="patientQuery"
+               (input)="onPatientInput()"
+               (focus)="patientDropdownOpen = true"
+               (blur)="closeDropdown()" />
+        <div class="combo-menu" *ngIf="patientDropdownOpen">
+          <button type="button" class="combo-option"
+                  *ngFor="let p of filteredPatients"
+                  [class.selected]="selectedPatient?.id_patient === p.id_patient"
+                  (mousedown)="selectPatient(p)">
+            <span class="combo-name">{{ patientLabel(p) }}</span>
+            <span class="combo-meta">{{ p.user?.email }} · {{ p.user?.telephone || '—' }}</span>
+          </button>
+          <div class="combo-empty" *ngIf="filteredPatients.length === 0">Aucun patient trouvé.</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="lbl">Date *</label>
+        <input class="input" type="date" name="date"
+               [(ngModel)]="form.date_rendez_vous" (ngModelChange)="onDateChange()" />
+      </div>
+
+      <div class="field" *ngIf="form.date_rendez_vous">
+        <label class="lbl">Créneau * <span class="lbl-hint">— consultation de 30 min</span></label>
+        <div class="slot-block">
+          <div class="slot-title">Matin</div>
+          <div class="slot-grid">
+            <button type="button" class="slot"
+                    *ngFor="let s of morningSlots"
+                    [class.taken]="slotTaken(s)"
+                    [class.active]="form.heure === s"
+                    [disabled]="slotTaken(s)"
+                    (click)="selectSlot(s)">{{ s }}</button>
+          </div>
+        </div>
+        <div class="slot-block">
+          <div class="slot-title">Après-midi</div>
+          <div class="slot-grid">
+            <button type="button" class="slot"
+                    *ngFor="let s of afternoonSlots"
+                    [class.taken]="slotTaken(s)"
+                    [class.active]="form.heure === s"
+                    [disabled]="slotTaken(s)"
+                    (click)="selectSlot(s)">{{ s }}</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="lbl">Statut</label>
+        <select class="input" name="statut" [(ngModel)]="form.statut">
+          <option value="confirme">Confirmé</option>
+          <option value="en_attente">En attente</option>
+          <option value="annule">Annulé</option>
+        </select>
+      </div>
+
+      <div *ngIf="createError" class="alert error">{{ createError }}</div>
+
+      <div class="modal-foot">
+        <button class="btn-secondary" type="button" (click)="closeCreate()" [disabled]="creating">Annuler</button>
+        <button class="btn-add" type="submit"
+                [disabled]="creating || !selectedPatient || !form.heure">
+          {{ creating ? 'Création…' : 'Créer le rendez-vous' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

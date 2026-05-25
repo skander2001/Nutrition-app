@@ -12,7 +12,7 @@
       </div>
 
       <div class="body-grid">
-        <!-- LEFT: Patient + appointments -->
+        <!-- LEFT: Patient info + appointments -->
         <div class="card">
           <div class="pp">
             <div class="pp-photo">{{ patientInitials }}</div>
@@ -57,10 +57,17 @@
             </div>
           </div>
 
+          <!-- Tabs + RDV list -->
           <div class="tabs-row">
             <div class="tabs">
-              <button [class.active]="activeTab === 'next'" (click)="activeTab = 'next'">À venir</button>
-              <button [class.active]="activeTab === 'past'" (click)="activeTab = 'past'">Passés</button>
+              <button [class.active]="activeTab === 'next'" (click)="activeTab = 'next'">
+                À venir
+                <span *ngIf="upcomingAppts.length > 0" class="tab-count">{{ upcomingAppts.length }}</span>
+              </button>
+              <button [class.active]="activeTab === 'past'" (click)="activeTab = 'past'">
+                Passés
+                <span *ngIf="pastAppts.length > 0" class="tab-count muted">{{ pastAppts.length }}</span>
+              </button>
               <button [class.active]="activeTab === 'canceled'" (click)="activeTab = 'canceled'">Annulés</button>
             </div>
             <a routerLink="/appointment" class="add-btn">
@@ -70,70 +77,111 @@
           </div>
 
           <div class="appt-list">
-            <div *ngFor="let a of appointments" class="appt">
-              <div class="appt-num" [class.next]="a.next">{{ a.num }}</div>
-              <div>
-                <span class="appt-col-lbl">Date</span>
-                <div class="appt-col-val">{{ a.date }}</div>
-                <div class="appt-col-sub">{{ a.dateMeta }}</div>
-              </div>
-              <div class="hide-md">
-                <span class="appt-col-lbl">Motif</span>
-                <div class="appt-col-val">{{ a.reason }}</div>
-                <div class="appt-col-sub">{{ a.reasonMeta }}</div>
-              </div>
-              <div class="appt-prac">
-                <div class="appt-prac-photo">{{ a.practitionerInitials }}</div>
+            <!-- Loading -->
+            <div *ngIf="loadingAppts" class="empty">Chargement…</div>
+
+            <!-- Appointment rows -->
+            <ng-container *ngIf="!loadingAppts">
+              <div *ngFor="let a of filteredAppts; let i = index" class="appt">
+                <div class="appt-num" [class.next]="activeTab === 'next'">{{ i + 1 }}</div>
                 <div>
-                  <span class="appt-col-lbl">Praticien</span>
-                  <div class="appt-col-val">{{ a.practitioner }}</div>
+                  <span class="appt-col-lbl">Date</span>
+                  <div class="appt-col-val">{{ formatDate(a.date) }}</div>
+                  <div class="appt-col-sub">{{ a.heure }}</div>
+                </div>
+                <div class="hide-md">
+                  <span class="appt-col-lbl">Créneau</span>
+                  <div class="appt-col-val">{{ a.heure }}</div>
+                  <div class="appt-col-sub">30 min</div>
+                </div>
+                <div class="appt-prac">
+                  <div class="appt-prac-photo">{{ nutInitials(a.nutritionniste) }}</div>
+                  <div>
+                    <span class="appt-col-lbl">Praticien</span>
+                    <div class="appt-col-val">{{ a.nutritionniste || 'Nutritionniste' }}</div>
+                  </div>
+                </div>
+                <div>
+                  <span class="badge"
+                        [class.ok]="a.statut === 'confirme'"
+                        [class.info]="a.statut === 'en_attente'"
+                        [class.warn]="a.statut === 'annule'">
+                    <span class="dot"></span>{{ statutLabel(a.statut) }}
+                  </span>
                 </div>
               </div>
-              <div><span class="badge" [class.ok]="a.status === 'ok'" [class.info]="a.status === 'info'" [class.warn]="a.status === 'warn'"><span class="dot"></span>{{ a.statusLabel }}</span></div>
-            </div>
-            <div *ngIf="appointments.length === 0" class="empty">Aucun rendez-vous à afficher.</div>
+              <div *ngIf="filteredAppts.length === 0" class="empty">Aucun rendez-vous à afficher.</div>
+            </ng-container>
           </div>
         </div>
 
-        <!-- RIGHT -->
+        <!-- RIGHT: Suivi preview + quick stats -->
         <div class="aside">
-          <div class="card progress-card">
-            <h4>Objectifs en cours</h4>
-            <div class="progress-row"><span class="lbl">Poids cible</span><span class="val">82,4 / 75 kg</span></div>
-            <div class="bar"><div style="width:62%"></div></div>
-            <div class="progress-row"><span class="lbl">Hydratation /jour</span><span class="val">1,8 / 2,5 L</span></div>
-            <div class="bar ok"><div style="width:72%"></div></div>
-            <div class="progress-row"><span class="lbl">Activité physique</span><span class="val">3 / 5 séances</span></div>
-            <div class="bar warn"><div style="width:60%"></div></div>
-            <div class="progress-row" style="margin-top:6px;"><span class="lbl">Sommeil moyen</span><span class="val">7 h 12</span></div>
-            <svg class="mini-chart" viewBox="0 0 240 56" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="g1" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="0" stop-color="#4f46e5" stop-opacity=".25"/>
-                  <stop offset="1" stop-color="#4f46e5" stop-opacity="0"/>
-                </linearGradient>
-              </defs>
-              <path d="M0 38 L24 30 L48 34 L72 22 L96 28 L120 18 L144 24 L168 12 L192 18 L216 8 L240 14" fill="none" stroke="#4f46e5" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-              <path d="M0 38 L24 30 L48 34 L72 22 L96 28 L120 18 L144 24 L168 12 L192 18 L216 8 L240 14 L240 56 L0 56 Z" fill="url(#g1)"/>
-            </svg>
-          </div>
 
-          <div class="card">
+          <!-- Suivi nutritionnel card -->
+          <div class="card suivi-preview-card">
             <div class="card-hd">
               <h3>Suivi nutritionnel</h3>
+              <a routerLink="/suivi" class="see-all">Voir tout →</a>
             </div>
-            <div class="rec-list">
+
+            <!-- Stats row (3 boxes) -->
+            <div *ngIf="!loadingConsultations && consultations.length > 0" class="suivi-stats">
+              <div class="suivi-stat">
+                <div class="suivi-stat-lbl">Poids</div>
+                <div class="suivi-stat-val">{{ latestConsultation?.poids ?? '—' }} <span>kg</span></div>
+                <div class="suivi-stat-delta" [class.down]="delta('poids').dir === 'down'" [class.up]="delta('poids').dir === 'up'">
+                  {{ delta('poids').val }} kg
+                </div>
+              </div>
+              <div class="suivi-stat">
+                <div class="suivi-stat-lbl">IMC</div>
+                <div class="suivi-stat-val">{{ latestConsultation?.imc ?? '—' }}</div>
+                <div class="suivi-stat-delta" [class.down]="delta('imc').dir === 'down'" [class.up]="delta('imc').dir === 'up'">
+                  {{ delta('imc').val }}
+                </div>
+              </div>
+              <div class="suivi-stat">
+                <div class="suivi-stat-lbl">Glycémie</div>
+                <div class="suivi-stat-val">{{ latestConsultation?.glycemie ?? '—' }} <span>g/L</span></div>
+                <div class="suivi-stat-delta" [class.down]="delta('glycemie').dir === 'down'" [class.up]="delta('glycemie').dir === 'up'">
+                  {{ delta('glycemie').val }} g/L
+                </div>
+              </div>
+            </div>
+
+            <!-- Mini Chart.js weight sparkline -->
+            <div *ngIf="!loadingConsultations && consultations.length > 0" class="mini-chart-wrap">
+              <canvas #miniChart></canvas>
+            </div>
+
+            <!-- Last 3 consultations -->
+            <div class="rec-list" *ngIf="!loadingConsultations">
               <div *ngFor="let r of records" class="rec">
                 <div class="rec-date"><span class="d">{{ r.d }}</span><span class="m">{{ r.m }}</span></div>
                 <div class="rec-main">
-                  <div class="rec-cell"><div class="lbl">Poids</div><div class="val">{{ r.weight }}</div><div class="delta" [class.down]="r.weightDir === 'down'" [class.up]="r.weightDir === 'up'">{{ r.weightDelta }}</div></div>
-                  <div class="rec-cell"><div class="lbl">IMC</div><div class="val">{{ r.bmi }}</div><div class="delta" [class.down]="r.bmiDir === 'down'" [class.up]="r.bmiDir === 'up'">{{ r.bmiDelta }}</div></div>
-                  <div class="rec-cell"><div class="lbl">Masse gr.</div><div class="val">{{ r.fat }}</div><div class="delta" [class.down]="r.fatDir === 'down'" [class.up]="r.fatDir === 'up'">{{ r.fatDelta }}</div></div>
+                  <div class="rec-cell">
+                    <div class="lbl">Poids</div>
+                    <div class="val">{{ r.weight }}</div>
+                    <div class="delta" [class.down]="r.weightDir === 'down'" [class.up]="r.weightDir === 'up'">{{ r.weightDelta }}</div>
+                  </div>
+                  <div class="rec-cell">
+                    <div class="lbl">IMC</div>
+                    <div class="val">{{ r.imc }}</div>
+                    <div class="delta" [class.down]="r.imcDir === 'down'" [class.up]="r.imcDir === 'up'">{{ r.imcDelta }}</div>
+                  </div>
+                  <div class="rec-cell">
+                    <div class="lbl">Glycémie</div>
+                    <div class="val">{{ r.gly }}</div>
+                    <div class="delta" [class.down]="r.glyDir === 'down'" [class.up]="r.glyDir === 'up'">{{ r.glyDelta }}</div>
+                  </div>
                 </div>
               </div>
-              <div *ngIf="records.length === 0" class="empty">Aucune mesure enregistrée.</div>
+              <div *ngIf="records.length === 0 && !loadingConsultations" class="empty">Aucune consultation enregistrée.</div>
+              <div *ngIf="loadingConsultations" class="empty">Chargement…</div>
             </div>
           </div>
+
         </div>
       </div>
     </div>

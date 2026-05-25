@@ -1,0 +1,94 @@
+<div class="shell">
+  <app-admin-sidebar active="dashboard"></app-admin-sidebar>
+
+  <main class="shell-main">
+    <app-topbar userRole="Nutritionniste"></app-topbar>
+
+    <div class="admin-page">
+    <header class="page-hd">
+      <div>
+        <div class="eyebrow">Bienvenue</div>
+        <h1>{{ nutritionnisteName || 'Nutritionniste' }}</h1>
+      </div>
+    </header>
+
+    <div *ngIf="error" class="alert error">{{ error }}</div>
+
+    <!-- Stats -->
+    <section class="stats-grid" *ngIf="stats">
+      <div class="stat-card">
+        <div class="stat-lbl">Patients</div>
+        <div class="stat-val">{{ stats.total_patients }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-lbl">RDV aujourd'hui</div>
+        <div class="stat-val">{{ stats.rdv_today }}</div>
+      </div>
+      <div class="stat-card warn">
+        <div class="stat-lbl">En attente</div>
+        <div class="stat-val">{{ stats.rdv_pending }}</div>
+      </div>
+      <div class="stat-card ok">
+        <div class="stat-lbl">À venir (confirmés)</div>
+        <div class="stat-val">{{ stats.rdv_confirmed_upcoming }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-lbl">Consultations</div>
+        <div class="stat-val">{{ stats.total_consultations }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-lbl">Templates plans</div>
+        <div class="stat-val">{{ stats.total_templates }}</div>
+      </div>
+    </section>
+
+    <div class="row-2">
+      <!-- RDV du jour -->
+      <section class="card">
+        <div class="section-hd">
+          <h2>Rendez-vous du jour</h2>
+          <a routerLink="/admin/rendez-vous" class="see-all">Tout voir →</a>
+        </div>
+        <div *ngIf="todayRdv.length === 0" class="empty">Aucun rendez-vous aujourd'hui.</div>
+        <ul class="rdv-list" *ngIf="todayRdv.length > 0">
+          <li *ngFor="let r of todayRdv">
+            <div class="rdv-time">{{ r.heure }}</div>
+            <div class="rdv-body">
+              <div class="rdv-name">{{ r.patient?.prenom }} {{ r.patient?.nom }}</div>
+              <div class="rdv-meta">{{ r.patient?.telephone }}</div>
+            </div>
+            <span class="badge" [class.ok]="r.statut === 'confirme'" [class.warn]="r.statut === 'en_attente'" [class.danger]="r.statut === 'annule'">
+              {{ r.statut }}
+            </span>
+          </li>
+        </ul>
+      </section>
+
+      <!-- En attente de confirmation -->
+      <section class="card">
+        <div class="section-hd">
+          <h2>En attente de confirmation</h2>
+          <a routerLink="/admin/rendez-vous" class="see-all">Tout voir →</a>
+        </div>
+        <div *ngIf="upcomingRdv.length === 0" class="empty">Aucune demande en attente.</div>
+        <ul class="rdv-list" *ngIf="upcomingRdv.length > 0">
+          <li *ngFor="let r of upcomingRdv">
+            <div class="rdv-time bubble">
+              <div class="d">{{ r.date_rendez_vous }}</div>
+              <div class="h">{{ r.heure }}</div>
+            </div>
+            <div class="rdv-body">
+              <div class="rdv-name">{{ r.patient?.prenom }} {{ r.patient?.nom }}</div>
+              <div class="rdv-meta">{{ r.patient?.email }}</div>
+            </div>
+            <div class="actions">
+              <button class="btn-mini ok" (click)="confirm(r)" title="Confirmer">✓</button>
+              <button class="btn-mini danger" (click)="cancel(r)" title="Refuser">✕</button>
+            </div>
+          </li>
+        </ul>
+      </section>
+    </div>
+    </div>
+  </main>
+</div>

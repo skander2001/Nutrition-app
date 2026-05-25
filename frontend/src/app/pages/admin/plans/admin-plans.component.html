@@ -1,0 +1,292 @@
+<div class="shell">
+  <app-admin-sidebar active="plans"></app-admin-sidebar>
+
+  <main class="shell-main">
+    <app-topbar userRole="Nutritionniste"></app-topbar>
+
+    <div class="admin-page">
+      <header class="page-hd">
+        <h1>Plans alimentaires</h1>
+      </header>
+
+      <div class="tabs">
+        <button [class.active]="tab === 'patients'" (click)="setTab('patients')">Plans patients</button>
+        <button [class.active]="tab === 'templates'" (click)="setTab('templates')">Templates</button>
+      </div>
+
+      <!-- ═══ TAB : Plans patients ════════════════════════════════ -->
+      <ng-container *ngIf="tab === 'patients'">
+
+        <!-- Search bar -->
+        <div class="search-wrap">
+          <div class="search-box" [class.focused]="patientDropdownOpen">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+            <input class="search-input" autocomplete="off"
+                   placeholder="Rechercher un patient par nom, prénom ou email…"
+                   [(ngModel)]="patientQuery"
+                   (input)="onPatientInput()"
+                   (focus)="patientDropdownOpen = true"
+                   (blur)="closeDropdown()" />
+            <button class="search-clear" *ngIf="patientQuery" (mousedown)="clearSearch()"
+                    type="button" aria-label="Effacer">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                   stroke-width="2.5" stroke-linecap="round">
+                <path d="M18 6 6 18M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Dropdown -->
+          <div class="search-dropdown" *ngIf="patientDropdownOpen && filteredPatients.length > 0">
+            <div class="search-dropdown-hint" *ngIf="!patientQuery">Tous les patients</div>
+            <button type="button" class="search-option"
+                    *ngFor="let p of filteredPatients"
+                    [class.active]="selectedPatient?.id_patient === p.id_patient"
+                    (mousedown)="selectPatient(p)">
+              <div class="search-option-avatar">{{ initials(p) }}</div>
+              <div class="search-option-body">
+                <span class="search-option-name">{{ patientLabel(p) }}</span>
+                <span class="search-option-meta">{{ p.user?.email }}</span>
+              </div>
+              <svg *ngIf="selectedPatient?.id_patient === p.id_patient"
+                   viewBox="0 0 24 24" width="14" height="14" fill="none"
+                   stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </button>
+          </div>
+          <div class="search-dropdown" *ngIf="patientDropdownOpen && filteredPatients.length === 0 && patientQuery">
+            <div class="search-no-result">Aucun patient trouvé pour « {{ patientQuery }} »</div>
+          </div>
+        </div>
+
+        <!-- Selected patient strip -->
+        <div class="patient-strip" *ngIf="selectedPatient">
+          <div class="patient-avatar">{{ initials(selectedPatient) }}</div>
+          <div class="patient-info">
+            <strong>{{ patientLabel(selectedPatient) }}</strong>
+            <span class="patient-sub">{{ selectedPatient.user?.email }}
+              <ng-container *ngIf="selectedPatient.user?.telephone"> · {{ selectedPatient.user?.telephone }}</ng-container>
+            </span>
+          </div>
+          <div class="patient-tags">
+            <span class="tag" *ngIf="selectedPatient.objectif">{{ selectedPatient.objectif }}</span>
+            <span class="tag neutral" *ngIf="selectedPatient.taille">{{ selectedPatient.taille }} cm</span>
+            <span class="tag neutral" *ngIf="selectedPatient.poids_initial">{{ selectedPatient.poids_initial }} kg</span>
+          </div>
+          <button class="btn-primary ai-btn" (click)="openAi()">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" style="margin-right:.4rem">
+              <path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/>
+            </svg>
+            Générer avec l'IA
+          </button>
+        </div>
+
+        <!-- Loading -->
+        <div *ngIf="selectedPatient && plansLoading" class="empty">Chargement des plans…</div>
+
+        <!-- Empty state -->
+        <div *ngIf="selectedPatient && !plansLoading && patientPlans.length === 0" class="empty-state">
+          <div class="empty-state-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <rect x="3" y="3" width="18" height="18" rx="3"/>
+              <path d="M8 12h8M8 8h8M8 16h5"/>
+            </svg>
+          </div>
+          <p>Aucun plan pour <strong>{{ patientLabel(selectedPatient) }}</strong></p>
+          <button class="btn-primary" (click)="openAi()">Générer le premier plan avec l'IA</button>
+        </div>
+
+        <!-- Placeholder -->
+        <div *ngIf="!selectedPatient" class="empty-state">
+          <div class="empty-state-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+          </div>
+          <p>Recherchez et sélectionnez un patient pour voir ses plans alimentaires.</p>
+        </div>
+
+        <!-- Plans list -->
+        <div class="plans-list" *ngIf="selectedPatient && !plansLoading && patientPlans.length > 0">
+          <div *ngFor="let p of patientPlans" class="plan-card">
+
+            <!-- Plan header -->
+            <div class="plan-card-hd">
+              <div class="plan-card-title">
+                <span class="plan-name">{{ p.nom }}</span>
+                <span class="plan-badge" *ngIf="p.template_nom">{{ p.template_nom }}</span>
+              </div>
+              <div class="plan-card-actions">
+                <span class="plan-dates muted" *ngIf="p.date_debut">
+                  {{ p.date_debut }} → {{ p.date_fin || '…' }}
+                </span>
+                <button class="btn-danger" (click)="deletePlan(p)">Supprimer</button>
+              </div>
+            </div>
+
+            <!-- Day selector tabs -->
+            <div class="day-selector" *ngIf="contenuKeys(p.contenu).length > 0">
+              <button *ngFor="let jour of contenuKeys(p.contenu)"
+                      class="day-tab"
+                      [class.active]="getDayForPlan(p.id, contenuKeys(p.contenu)) === jour"
+                      (click)="setDayForPlan(p.id, jour)">
+                {{ jour.slice(0, 3) }}
+              </button>
+            </div>
+
+            <!-- Meals for selected day -->
+            <div class="day-meals" *ngIf="contenuKeys(p.contenu).length > 0">
+              <div *ngFor="let meal of contenuMealKeys(p.contenu, getDayForPlan(p.id, contenuKeys(p.contenu)))"
+                   class="meal-row">
+                <div class="meal-label-col">
+                  {{ mealDisplayLabels[meal] || meal }}
+                </div>
+                <div class="meal-content-col">
+                  <ng-container *ngIf="isMealObject(p.contenu[getDayForPlan(p.id, contenuKeys(p.contenu))][meal]); else plainText">
+                    <div class="meal-dish">{{ p.contenu[getDayForPlan(p.id, contenuKeys(p.contenu))][meal].repas }}</div>
+                    <div class="meal-macros" *ngIf="p.contenu[getDayForPlan(p.id, contenuKeys(p.contenu))][meal].calories">
+                      <span class="macro-chip kcal">{{ p.contenu[getDayForPlan(p.id, contenuKeys(p.contenu))][meal].calories }} kcal</span>
+                      <span class="macro-chip" *ngIf="p.contenu[getDayForPlan(p.id, contenuKeys(p.contenu))][meal].proteines">P {{ p.contenu[getDayForPlan(p.id, contenuKeys(p.contenu))][meal].proteines }}g</span>
+                      <span class="macro-chip" *ngIf="p.contenu[getDayForPlan(p.id, contenuKeys(p.contenu))][meal].glucides">G {{ p.contenu[getDayForPlan(p.id, contenuKeys(p.contenu))][meal].glucides }}g</span>
+                      <span class="macro-chip" *ngIf="p.contenu[getDayForPlan(p.id, contenuKeys(p.contenu))][meal].lipides">L {{ p.contenu[getDayForPlan(p.id, contenuKeys(p.contenu))][meal].lipides }}g</span>
+                    </div>
+                  </ng-container>
+                  <ng-template #plainText>
+                    <div class="meal-dish">{{ p.contenu[getDayForPlan(p.id, contenuKeys(p.contenu))][meal] }}</div>
+                  </ng-template>
+                </div>
+              </div>
+            </div>
+
+            <div class="plan-notes" *ngIf="p.notes">{{ p.notes }}</div>
+          </div>
+        </div>
+
+      </ng-container>
+
+      <!-- ═══ TAB : Templates ══════════════════════════════════════ -->
+      <ng-container *ngIf="tab === 'templates'">
+        <div class="section-hd">
+          <h2>Templates réutilisables</h2>
+          <button class="btn-primary" (click)="openCreate()">+ Nouveau template</button>
+        </div>
+
+        <div *ngIf="error" class="alert error">{{ error }}</div>
+        <div *ngIf="loading" class="empty">Chargement…</div>
+
+        <div *ngIf="!loading" class="cards-grid">
+          <div *ngFor="let t of templates" class="template-card">
+            <div class="t-hd">
+              <div>
+                <h3>{{ t.nom }}</h3>
+                <span class="badge" [class.ok]="t.objectif === 'perte_poids'"
+                      [class.warn]="t.objectif === 'prise_masse'">{{ t.objectif || '—' }}</span>
+              </div>
+              <div class="t-kcal" *ngIf="t.kcal_total">{{ t.kcal_total }} kcal</div>
+            </div>
+            <p class="t-desc">{{ t.description || 'Pas de description.' }}</p>
+            <div class="t-actions">
+              <button class="btn-secondary" (click)="openEdit(t)">Modifier</button>
+              <button class="btn-danger" (click)="remove(t)">Supprimer</button>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="!loading && templates.length === 0" class="empty">Aucun template. Créez le premier !</div>
+      </ng-container>
+
+    </div>
+  </main>
+</div>
+
+<!-- ── Modal : Génération IA ──────────────────────────────────── -->
+<div *ngIf="aiModalOpen" class="modal-overlay" (click)="closeAi()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <header class="modal-hd">
+      <div>
+        <h2>Générer un plan alimentaire IA</h2>
+        <div class="muted">Plan 7 jours pour {{ selectedPatient ? patientLabel(selectedPatient) : '' }}.</div>
+      </div>
+      <button class="modal-close" type="button" (click)="closeAi()" [disabled]="aiGenerating" aria-label="Fermer">×</button>
+    </header>
+
+    <!-- Spinner while generating -->
+    <div *ngIf="aiGenerating" class="gen-loading">
+      <div class="gen-spinner"></div>
+      <p class="gen-title">Génération en cours…</p>
+      <p class="gen-sub">L'IA analyse le profil du patient et construit<br>un plan alimentaire personnalisé sur 7 jours.</p>
+    </div>
+
+    <form *ngIf="!aiGenerating" class="modal-body" (ngSubmit)="generateAi()" novalidate>
+      <div class="field">
+        <label class="lbl">Cuisine *</label>
+        <select class="input" name="cuisine" [(ngModel)]="aiForm.cuisine">
+          <option value="">— Choisir une cuisine —</option>
+          <option *ngFor="let c of cuisines" [value]="c">{{ c }}</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="lbl">Instructions supplémentaires (optionnel)</label>
+        <textarea class="input" name="notes" rows="2" [(ngModel)]="aiForm.notes"
+          placeholder="ex : éviter les fruits de mer, préférer les cuissons légères…"></textarea>
+      </div>
+      <div *ngIf="aiError" class="alert error">{{ aiError }}</div>
+      <div class="modal-foot">
+        <button class="btn-secondary" type="button" (click)="closeAi()">Annuler</button>
+        <button class="btn-add" type="submit">Générer le plan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ── Modal : Template ────────────────────────────────────────── -->
+<div *ngIf="modalOpen" class="modal-overlay" (click)="close()">
+  <div class="modal-card modal-lg" (click)="$event.stopPropagation()">
+    <header class="modal-hd">
+      <div><h2>{{ editing ? 'Modifier template' : 'Nouveau template' }}</h2></div>
+      <button class="modal-close" (click)="close()">×</button>
+    </header>
+    <div class="modal-body">
+      <div class="field">
+        <label class="lbl">Nom</label>
+        <input class="input" [(ngModel)]="form.nom" placeholder="ex: Plan équilibré standard" />
+      </div>
+      <div class="row-2">
+        <div class="field">
+          <label class="lbl">Objectif</label>
+          <select class="input" [(ngModel)]="form.objectif">
+            <option *ngFor="let o of objectifs" [value]="o">{{ o }}</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="lbl">Calories cible (kcal/jour)</label>
+          <input class="input" type="number" [(ngModel)]="form.kcal_total" />
+        </div>
+      </div>
+      <div class="field">
+        <label class="lbl">Description</label>
+        <textarea class="input" rows="2" [(ngModel)]="form.description" placeholder="Public visé, principes…"></textarea>
+      </div>
+      <div class="field">
+        <label class="lbl">Contenu hebdomadaire</label>
+        <div class="content-grid">
+          <div class="content-hd">Repas</div>
+          <div *ngFor="let j of jours" class="content-hd day">{{ j }}</div>
+          <ng-container *ngFor="let m of meals">
+            <div class="content-meal">{{ mealLabels[m] }}</div>
+            <input *ngFor="let j of jours" [(ngModel)]="form.contenu[j][m]" placeholder="—" />
+          </ng-container>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn-secondary" (click)="close()">Annuler</button>
+        <button class="btn-primary" (click)="save()">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,9 +1,11 @@
 from datetime import datetime, date, time, timedelta
 from sqlalchemy.exc import IntegrityError
 from models import db
-from models.rendez_vous import RendezVous, Disponibilite
+from models.rendez_vous import RendezVous
+from models.disponibilite import Disponibilite
 from models.patient import Patient
 from models.nutritionniste import Nutritionniste
+from services import notification_service
 
 JOURS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
 SLOT_MINUTES = 30
@@ -110,13 +112,37 @@ def book(user_id: int, date_str: str, heure_str: str) -> dict:
         db.session.rollback()
         raise ValueError('Ce créneau est déjà réservé')
 
+    # Notify the nutritionniste
+    nutri = Nutritionniste.query.get(nid)
+    if nutri:
+        from models.user import User
+        user = User.query.get(patient.id_user)
+        nom_patient = f"{user.prenom} {user.nom}" if user else 'Un patient'
+        notification_service.create(
+            nutri.id_user,
+            'Nouvelle demande de rendez-vous',
+            f"{nom_patient} a réservé un créneau le {d} à {h.strftime('%H:%M')}.",
+            'info', '/admin/rendez-vous'
+        )
+
     return rv.to_dict()
 
 
 def list_for_user(user_id: int) -> list[dict]:
+    from models.user import User
     patient = _patient_for_user(user_id)
     rows = (RendezVous.query
             .filter_by(id_patient=patient.id_patient)
             .order_by(RendezVous.date_rendez_vous, RendezVous.heure)
             .all())
-    return [rv.to_dict() for rv in rows]
+    result = []
+    for rv in rows:
+        d = rv.to_dict()
+        nut = Nutritionniste.query.get(rv.id_nutritionniste)
+        if nut:
+            user = User.query.get(nut.id_user)
+            d['nutritionniste'] = f"Dr. {user.prenom} {user.nom}" if user else 'Nutritionniste'
+        else:
+            d['nutritionniste'] = 'Nutritionniste'
+        result.append(d)
+    return result

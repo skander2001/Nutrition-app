@@ -15,6 +15,18 @@ export interface Appointment {
   date: string;
   heure: string;
   statut: 'en_attente' | 'confirme' | 'annule';
+  nutritionniste?: string;
+}
+
+export interface PatientPlan {
+  id: number;
+  nom: string;
+  date_debut: string | null;
+  date_fin: string | null;
+  contenu: Record<string, Record<string, any>>;
+  notes: string | null;
+  template_nom: string | null;
+  created_at: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -42,5 +54,9 @@ export class AppointmentService {
 
   list(): Observable<{ appointments: Appointment[] }> {
     return this.http.get<{ appointments: Appointment[] }>(API, { headers: this.headers });
+  }
+
+  getMyPlans(): Observable<PatientPlan[]> {
+    return this.http.get<PatientPlan[]>(`${API}/my-plans`, { headers: this.headers });
   }
 }

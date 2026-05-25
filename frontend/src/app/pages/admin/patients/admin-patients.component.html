@@ -1,0 +1,133 @@
+<div class="shell">
+  <app-admin-sidebar active="patients"></app-admin-sidebar>
+
+  <main class="shell-main">
+    <app-topbar userRole="Nutritionniste"></app-topbar>
+
+    <div class="admin-page">
+    <header class="page-hd">
+      <div>
+        <h1>Patients</h1>
+        <div class="muted">{{ patients.length }} patient(s) au total</div>
+      </div>
+      <div class="page-hd-actions">
+        <input class="search-input" placeholder="Rechercher par nom, prénom, email…" [(ngModel)]="search" (input)="onSearch()" />
+        <button class="btn-add" type="button" (click)="openCreate()">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          Ajouter un patient
+        </button>
+      </div>
+    </header>
+
+    <div *ngIf="error" class="alert error">{{ error }}</div>
+
+    <div *ngIf="loading" class="empty">Chargement…</div>
+
+    <table class="admin-table" *ngIf="!loading && patients.length > 0">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nom complet</th>
+          <th>Email</th>
+          <th>Téléphone</th>
+          <th>Sexe</th>
+          <th>Objectif</th>
+          <th>Profil</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of patients">
+          <td>#{{ p.id_patient }}</td>
+          <td>{{ p.user?.prenom }} {{ p.user?.nom }}</td>
+          <td>{{ p.user?.email }}</td>
+          <td>{{ p.user?.telephone }}</td>
+          <td>{{ p.sexe || '—' }}</td>
+          <td>{{ p.objectif || '—' }}</td>
+          <td>
+            <span class="badge" [class.ok]="p.profile_complete" [class.warn]="!p.profile_complete">
+              {{ p.profile_complete ? 'Complet' : 'Incomplet' }}
+            </span>
+          </td>
+          <td>
+            <a [routerLink]="['/admin/patients', p.id_patient]" class="btn-secondary">Voir →</a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div *ngIf="!loading && patients.length === 0" class="empty">Aucun patient trouvé.</div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal : Ajouter un patient -->
+<div class="modal-overlay" *ngIf="showCreate" (click)="closeCreate()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <header class="modal-hd">
+      <div>
+        <h2>Nouveau patient</h2>
+        <div class="muted">Créez un compte patient et son dossier.</div>
+      </div>
+      <button class="modal-close" type="button" (click)="closeCreate()" aria-label="Fermer">×</button>
+    </header>
+
+    <form class="modal-body" (ngSubmit)="submitCreate()" novalidate>
+      <div class="row-2">
+        <div class="field">
+          <label class="lbl">Prénom *</label>
+          <input class="input" name="firstName" [(ngModel)]="form.firstName" placeholder="Bechir" />
+        </div>
+        <div class="field">
+          <label class="lbl">Nom *</label>
+          <input class="input" name="lastName" [(ngModel)]="form.lastName" placeholder="Kanzari" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="lbl">Adresse e-mail *</label>
+        <input class="input" type="email" name="email" [(ngModel)]="form.email" placeholder="patient@exemple.com" />
+      </div>
+
+      <div class="field">
+        <label class="lbl">Téléphone mobile *</label>
+        <input class="input" type="tel" name="phone" [(ngModel)]="form.phone" placeholder="+216 22 451 308" />
+      </div>
+
+      <div class="row-2">
+        <div class="field">
+          <label class="lbl">Mot de passe *</label>
+          <input class="input" type="password" name="password" [(ngModel)]="form.password" placeholder="Au moins 8 caractères" />
+        </div>
+        <div class="field">
+          <label class="lbl">Confirmer le mot de passe *</label>
+          <input class="input" type="password" name="confirm" [(ngModel)]="form.confirm" placeholder="••••••••" />
+        </div>
+      </div>
+
+      <div class="row-2">
+        <div class="field">
+          <label class="lbl">Sexe</label>
+          <select class="input" name="sexe" [(ngModel)]="form.sexe">
+            <option value="">—</option>
+            <option value="M">Homme</option>
+            <option value="F">Femme</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="lbl">Objectif</label>
+          <input class="input" name="objectif" [(ngModel)]="form.objectif" placeholder="Perte de poids…" />
+        </div>
+      </div>
+
+      <div *ngIf="createError" class="alert error">{{ createError }}</div>
+
+      <div class="modal-foot">
+        <button class="btn-secondary" type="button" (click)="closeCreate()" [disabled]="creating">Annuler</button>
+        <button class="btn-add" type="submit" [disabled]="creating">
+          {{ creating ? 'Création…' : 'Créer le patient' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -43,7 +43,12 @@ export class LoginComponent implements OnInit {
       .subscribe({
         next: (user) => {
           this.loading = false;
-          const dest = user.profile_complete === false ? '/complete-profile' : '/dashboard';
+          let dest = '/dashboard';
+          if (user.role === 'nutritionniste') {
+            dest = '/admin';
+          } else if (user.profile_complete === false) {
+            dest = '/complete-profile';
+          }
           this.router.navigate([dest]);
         },
         error: (err) => {

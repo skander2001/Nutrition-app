@@ -1,0 +1,8 @@
+/* Admin patients — overrides only. Shared styles in src/styles.css. */
+
+/* Status pill specific to patients (profile-complete) */
+.patient-row .profile-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}

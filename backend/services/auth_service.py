@@ -43,6 +43,12 @@ def register(nom: str, prenom: str, email: str, telephone: str, password: str) -
     db.session.add(patient)
     db.session.commit()
 
+    try:
+        from services.email_service import send_welcome_email
+        send_welcome_email(email, prenom)
+    except Exception:
+        pass  # Ne pas bloquer l'inscription si l'e-mail échoue
+
     token = _make_token(user)
     return _user_response(user, token)
 
@@ -165,3 +171,49 @@ def change_password(user_id: int, current_password: str, new_password: str) -> d
     user.password = bcrypt.generate_password_hash(new_password).decode('utf-8')
     db.session.commit()
     return {'message': 'Mot de passe mis à jour'}
+
+
+def forgot_password(email: str) -> dict:
+    """Génère un token de réinitialisation et envoie l'e-mail."""
+    from services.email_service import send_reset_email
+
+    user = User.query.filter_by(email=email).first()
+    # Always return success to avoid email enumeration attacks
+    if not user or not user.password:
+        return {'message': 'Si cet e-mail existe, un lien vous a été envoyé.'}
+
+    reset_token = jwt.encode(
+        {
+            'reset_email': user.email,
+            'exp': datetime.now(timezone.utc) + timedelta(hours=1),
+        },
+        current_app.config['JWT_SECRET'],
+        algorithm='HS256',
+    )
+    frontend_url = current_app.config['FRONTEND_URL']
+    reset_link = f"{frontend_url}/reset-password?token={reset_token}"
+    send_reset_email(user.email, reset_link)
+    return {'message': 'Si cet e-mail existe, un lien vous a été envoyé.'}
+
+
+def reset_password(token: str, new_password: str) -> dict:
+    """Vérifie le token JWT de reset et met à jour le mot de passe."""
+    if not new_password or len(new_password) < 8:
+        raise ValueError('Le mot de passe doit contenir au moins 8 caractères')
+    try:
+        payload = jwt.decode(token, current_app.config['JWT_SECRET'], algorithms=['HS256'])
+        email = payload.get('reset_email')
+        if not email:
+            raise ValueError('Token invalide')
+    except jwt.ExpiredSignatureError:
+        raise ValueError('Ce lien a expiré. Veuillez en demander un nouveau.')
+    except jwt.InvalidTokenError:
+        raise ValueError('Token invalide ou malformé')
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        raise ValueError('Utilisateur introuvable')
+
+    user.password = bcrypt.generate_password_hash(new_password).decode('utf-8')
+    db.session.commit()
+    return {'message': 'Mot de passe réinitialisé avec succès'}

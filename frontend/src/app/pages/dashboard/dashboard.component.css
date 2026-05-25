@@ -274,6 +274,36 @@
   height: 100% !important;
 }
 
+/* Tab count badge */
+.tab-count {
+  display: inline-block;
+  margin-left: 5px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+.tab-count.muted {
+  background: var(--bg);
+  color: var(--ink-3);
+}
+
+/* Suivi card header "Voir tout" link */
+.suivi-preview-card .card-hd {
+  padding: 16px 20px 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+/* Empty/loading state */
+.empty {
+  padding: 20px;
+  text-align: center;
+  color: var(--ink-3);
+  font-size: 13px;
+}
+
 @media (max-width: 1280px) {
   .body-grid { grid-template-columns: 1fr; }
 }

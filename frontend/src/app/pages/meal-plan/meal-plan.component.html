@@ -1,0 +1,124 @@
+<div class="shell">
+  <app-sidebar active="plan"></app-sidebar>
+
+  <main class="shell-main">
+    <app-topbar userRole="Patient"></app-topbar>
+
+    <div class="page-wrap">
+      <header class="page-hdr">
+        <div>
+          <h1>Mon plan alimentaire</h1>
+          <p class="page-sub">Plan personnalisé établi par votre nutritionniste.</p>
+        </div>
+      </header>
+
+      <!-- Loading -->
+      <div *ngIf="loading" class="state-empty">Chargement…</div>
+
+      <!-- Empty -->
+      <div *ngIf="!loading && plans.length === 0" class="state-empty">
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+            <rect x="3" y="3" width="18" height="18" rx="3"/>
+            <path d="M8 12h8M8 8h8M8 16h5"/>
+          </svg>
+        </div>
+        <strong>Aucun plan alimentaire</strong>
+        <p>Votre nutritionniste n'a pas encore établi de plan pour vous.<br>Il sera visible ici après votre prochaine consultation.</p>
+      </div>
+
+      <ng-container *ngIf="!loading && plans.length > 0">
+
+        <!-- Plan selector (if multiple plans) -->
+        <div class="plan-tabs" *ngIf="plans.length > 1">
+          <button *ngFor="let p of plans; let i = index"
+                  class="plan-tab"
+                  [class.active]="p.id === selectedPlanId"
+                  (click)="selectPlan(p.id)">
+            <span class="plan-tab-num">{{ i === 0 ? 'Actuel' : 'Plan ' + (plans.length - i) }}</span>
+            <span class="plan-tab-date" *ngIf="p.created_at">{{ p.created_at | slice:0:10 }}</span>
+          </button>
+        </div>
+
+        <!-- Selected plan -->
+        <ng-container *ngIf="selectedPlan">
+          <!-- Plan meta card -->
+          <div class="plan-meta-card">
+            <div class="plan-meta-left">
+              <h2 class="plan-title">{{ selectedPlan.nom }}</h2>
+              <div class="plan-dates" *ngIf="selectedPlan.date_debut">
+                Du {{ selectedPlan.date_debut }}
+                <ng-container *ngIf="selectedPlan.date_fin"> au {{ selectedPlan.date_fin }}</ng-container>
+              </div>
+              <div class="plan-dates muted" *ngIf="!selectedPlan.date_debut">Durée non spécifiée</div>
+            </div>
+            <div class="plan-kcal" *ngIf="totalCalories(selectedPlan, getDayForPlan(selectedPlan.id, contenuKeys(selectedPlan.contenu))) > 0">
+              <span class="kcal-num">{{ totalCalories(selectedPlan, getDayForPlan(selectedPlan.id, contenuKeys(selectedPlan.contenu))) }}</span>
+              <span class="kcal-lbl">kcal ce jour</span>
+            </div>
+          </div>
+
+          <!-- Notes -->
+          <div class="plan-notes" *ngIf="selectedPlan.notes">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" style="flex-shrink:0">
+              <circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>
+            </svg>
+            {{ selectedPlan.notes }}
+          </div>
+
+          <!-- Day selector -->
+          <div class="day-nav">
+            <button *ngFor="let jour of contenuKeys(selectedPlan.contenu)"
+                    class="day-btn"
+                    [class.active]="getDayForPlan(selectedPlan.id, contenuKeys(selectedPlan.contenu)) === jour"
+                    (click)="setDayForPlan(selectedPlan.id, jour)">
+              {{ jour }}
+            </button>
+          </div>
+
+          <!-- Meals -->
+          <div class="meals-wrap">
+            <div *ngFor="let meal of contenuMealKeys(selectedPlan.contenu, getDayForPlan(selectedPlan.id, contenuKeys(selectedPlan.contenu)))"
+                 class="meal-card">
+              <div class="meal-card-hd">
+                <span class="meal-label">{{ mealLabels[meal] || meal }}</span>
+                <span class="kcal-badge"
+                      *ngIf="isMealObject(selectedPlan.contenu[getDayForPlan(selectedPlan.id, contenuKeys(selectedPlan.contenu))][meal]) && selectedPlan.contenu[getDayForPlan(selectedPlan.id, contenuKeys(selectedPlan.contenu))][meal].calories">
+                  {{ selectedPlan.contenu[getDayForPlan(selectedPlan.id, contenuKeys(selectedPlan.contenu))][meal].calories }} kcal
+                </span>
+              </div>
+
+              <ng-container *ngIf="isMealObject(selectedPlan.contenu[getDayForPlan(selectedPlan.id, contenuKeys(selectedPlan.contenu))][meal]); else plainMeal">
+                <p class="meal-dish">
+                  {{ selectedPlan.contenu[getDayForPlan(selectedPlan.id, contenuKeys(selectedPlan.contenu))][meal].repas }}
+                </p>
+                <div class="macro-row"
+                     *ngIf="selectedPlan.contenu[getDayForPlan(selectedPlan.id, contenuKeys(selectedPlan.contenu))][meal].proteines">
+                  <div class="macro-item">
+                    <span class="macro-name">Protéines</span>
+                    <span class="macro-val">{{ selectedPlan.contenu[getDayForPlan(selectedPlan.id, contenuKeys(selectedPlan.contenu))][meal].proteines }}g</span>
+                  </div>
+                  <div class="macro-item">
+                    <span class="macro-name">Glucides</span>
+                    <span class="macro-val">{{ selectedPlan.contenu[getDayForPlan(selectedPlan.id, contenuKeys(selectedPlan.contenu))][meal].glucides }}g</span>
+                  </div>
+                  <div class="macro-item">
+                    <span class="macro-name">Lipides</span>
+                    <span class="macro-val">{{ selectedPlan.contenu[getDayForPlan(selectedPlan.id, contenuKeys(selectedPlan.contenu))][meal].lipides }}g</span>
+                  </div>
+                </div>
+              </ng-container>
+              <ng-template #plainMeal>
+                <p class="meal-dish">
+                  {{ selectedPlan.contenu[getDayForPlan(selectedPlan.id, contenuKeys(selectedPlan.contenu))][meal] }}
+                </p>
+              </ng-template>
+            </div>
+          </div>
+
+        </ng-container>
+      </ng-container>
+    </div>
+  </main>
+</div>

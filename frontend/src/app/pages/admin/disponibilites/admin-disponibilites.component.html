@@ -1,0 +1,62 @@
+<div class="shell">
+  <app-admin-sidebar active="disponibilites"></app-admin-sidebar>
+
+  <main class="shell-main">
+    <app-topbar userRole="Nutritionniste"></app-topbar>
+
+    <div class="admin-page">
+    <header class="page-hd">
+      <h1>Disponibilités</h1>
+      <button class="btn-primary" (click)="openCreate()">+ Nouveau créneau</button>
+    </header>
+
+    <div *ngIf="error" class="alert error">{{ error }}</div>
+    <div *ngIf="loading" class="empty">Chargement…</div>
+
+    <div *ngIf="!loading" class="week-grid">
+      <div *ngFor="let jour of joursOrder" class="day-col">
+        <div class="day-hd">{{ jour }}</div>
+        <div *ngIf="byJour(jour).length === 0" class="no-slot">Aucun créneau</div>
+        <div *ngFor="let d of byJour(jour)" class="slot" [class.busy]="d.statut === 'indisponible'">
+          <div class="slot-time">{{ d.heure_debut }} → {{ d.heure_fin }}</div>
+          <div class="slot-actions">
+            <button class="btn-mini" (click)="openEdit(d)">✎</button>
+            <button class="btn-mini danger" (click)="remove(d)">✕</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+  </main>
+
+  <!-- Modal -->
+  <div *ngIf="modalOpen" class="modal-overlay" (click)="close()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-hd">
+        <h2>{{ editing ? 'Modifier créneau' : 'Nouveau créneau' }}</h2>
+        <button class="modal-close" (click)="close()">×</button>
+      </div>
+
+      <div class="form-grid">
+        <div class="field"><label>Jour</label>
+          <select [(ngModel)]="form.jour">
+            <option *ngFor="let j of joursOrder" [value]="j">{{ j }}</option>
+          </select>
+        </div>
+        <div class="field"><label>Date spécifique (optionnel)</label><input type="date" [(ngModel)]="form.date" /></div>
+        <div class="field"><label>Heure début</label><input type="time" [(ngModel)]="form.heure_debut" /></div>
+        <div class="field"><label>Heure fin</label><input type="time" [(ngModel)]="form.heure_fin" /></div>
+        <div class="field full"><label>Statut</label>
+          <select [(ngModel)]="form.statut">
+            <option value="disponible">Disponible</option>
+            <option value="indisponible">Indisponible</option>
+          </select>
+        </div>
+        <div class="form-actions">
+          <button class="btn-secondary" (click)="close()">Annuler</button>
+          <button class="btn-primary" (click)="save()">Enregistrer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -79,9 +79,7 @@ def google_callback():
             prenom=userinfo.get('given_name', ''),
             nom=userinfo.get('family_name', ''),
         )
-        profile_complete = result.get('profile_complete', False)
-        next_page = 'complete-profile' if not profile_complete else 'dashboard'
-        return redirect(f"{frontend_url}/{next_page}?token={result['token']}")
+        return redirect(f"{frontend_url}/oauth-callback?token={result['token']}")
     except Exception as e:
         current_app.logger.error(f"OAuth error: {e}")
         return redirect(f"{frontend_url}/login?error=oauth_failed")
@@ -147,6 +145,33 @@ def password_change():
             request.user_id,
             data.get('current_password'),
             data.get('new_password'),
+        )
+        return jsonify(result), 200
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+
+
+@auth_bp.post('/forgot-password')
+def forgot_password():
+    data = request.get_json(silent=True) or {}
+    email = (data.get('email') or '').strip().lower()
+    if not email:
+        return jsonify({'error': 'E-mail requis'}), 400
+    try:
+        result = auth_service.forgot_password(email)
+        return jsonify(result), 200
+    except Exception as e:
+        current_app.logger.error(f"forgot_password error: {e}")
+        return jsonify({'message': 'Si cet e-mail existe, un lien vous a été envoyé.'}), 200
+
+
+@auth_bp.post('/reset-password')
+def reset_password():
+    data = request.get_json(silent=True) or {}
+    try:
+        result = auth_service.reset_password(
+            token=data.get('token', ''),
+            new_password=data.get('new_password', ''),
         )
         return jsonify(result), 200
     except ValueError as e:
