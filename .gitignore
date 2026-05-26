@@ -21,5 +21,4 @@ backend/*.pyc
 *.log
 
 .claude
-AI_improved.ipynb
 backend/diet_with_meals.csv
