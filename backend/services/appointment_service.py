@@ -18,11 +18,11 @@ def _nutritionniste_id() -> int:
     return nut.id_nutritionniste
 
 
-def _patient_for_user(user_id: int) -> Patient:
-    patient = Patient.query.filter_by(id_user=user_id).first()
-    if not patient:
+def _patient_for_user(x: int) -> Patient:
+    p1 = Patient.query.filter_by(id_user=x).first()
+    if not p1:
         raise ValueError('Profil patient introuvable')
-    return patient
+    return p1
 
 
 def _parse_date(date_str: str) -> date:
